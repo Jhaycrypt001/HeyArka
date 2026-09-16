@@ -420,11 +420,29 @@ repo; re-run before shipping if anything changes.
 | Shielded demo grade | `B` | `arka attack --demo --shielded` |
 | Shielded injection susceptibility | `12.5%` | same |
 | Shielded risk-violation rate | `0%` | same |
-| Repo-agent run (separate cloned repo) | grade `B`, `18.8%` | `arka attack --repo … --entry …` |
-| Test count | `125` (core 42, shield 24, cli 29, canary 22, mcp 8) | `pnpm -r test` |
+| Repo-agent run (separate cloned repo) | grade `B`, `12.5%`, **labelled with its subject** | `arka attack --repo … --entry …` |
+| Test count | `131` (core 48, shield 24, cli 29, canary 22, mcp 8) | `pnpm -r test` |
 | Canary cadence | tick every 15 min, Demo account only | Railway deployment |
-| Attributable PnL delta | **does not exist yet** — no divergence has occurred | README |
+| Canary agreement rate | `13 of 13` over 45.5h, 6 real Demo orders per account | `reports/canary.jsonl` |
+| Attributable PnL delta | **deliberately not claimed** — see below | README |
 
-**The last row is load-bearing.** The page must not display a PnL delta.
-The README documents honestly that control and shielded have agreed on every
-real tick so far. The landing page says the same or says nothing.
+**The last two rows are load-bearing.** The page must never display a PnL delta.
+
+The canary is a controlled A/B under identical conditions -- same symbol, same
+live feed, same agent, shield the only variable -- so the quantitative finding
+is the **agreement rate**, not profit. 13 of 13 agreement over 45.5 hours is a
+complete answer to the false-positive question: the shield imposed no cost on
+clean input. That is what the page may claim.
+
+A PnL delta additionally requires an adversarial headline to appear organically
+in the live feed, which did not happen in the window. It is therefore absent by
+circumstance, not pending, and manufacturing the trigger would turn live
+evidence into a simulation. The page states this as a deliberate scope boundary
+rather than as an outstanding gap.
+
+The repo-agent row must always carry its subject. A susceptibility rate is a
+property of the agent under test, so `12.5%` unattributed is meaningless and
+unreproducible; the page says "a keyword-sentiment agent in a separate git
+repo". An earlier revision of this spec listed `18.8%` from an agent that was
+not reproducible from this repo -- corrected 2026-09-16 after re-measuring
+against a real git repository.

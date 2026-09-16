@@ -117,8 +117,14 @@ order placement. HeyArka's job is to prove whether it does, and to stop it.
 - **The LLM is not a security control.** Confirmation prompts and system-prompt rules
   live inside the attacker's reach. The risk contract is therefore enforced in
   deterministic code outside the model, and can veto any order the model proposes
-- **The canary is Demo-only.** `paperTrading: true` is asserted at construction and the
-  agent refuses to start if the resolved base URL is not the Demo environment
+- **The canary is Demo-only, enforced in code rather than by configuration.** Every
+  request `BitgetDemoClient` builds carries `paptrading: "1"` as a single hardcoded
+  string literal in the one request builder -- there is no environment variable, no
+  constructor option and no conditional that can change it, so there is no
+  misconfiguration that reaches live funds. An earlier revision of this document
+  described a `paperTrading: true` flag asserted at construction plus a base-URL check;
+  that describes an SDK this project does not use, and a base-URL switch would be the
+  weaker design precisely because it could be pointed elsewhere
 
 ## Data Flows
 

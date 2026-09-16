@@ -269,8 +269,8 @@ Honest, split three ways. Nothing here is aspirational.
 | Runtime | Node.js ≥20 (built and tested on Node 24) |
 | Monorepo | pnpm workspaces (pnpm 10.33) |
 | Tests | Vitest 2.1 |
-| Protocol | Model Context Protocol (`@modelcontextprotocol/typescript-sdk`) |
-| Trading | `@bitget-ai/bitget-agent-sdk`, Demo/paper-trading only |
+| Protocol | Model Context Protocol (`@modelcontextprotocol/sdk` ^1.30) |
+| Trading | First-party `BitgetDemoClient` on Bitget REST v2, locally HMAC-signed, Demo/paper-trading only |
 | Deployment | Railway (canary only) |
 
 ```
