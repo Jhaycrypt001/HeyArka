@@ -55,10 +55,19 @@ export function WordMark({
   className = "",
   size = "sm",
   title,
+  ink = "#000000",
 }: {
   className?: string;
   size?: "sm" | "md" | "lg";
   title?: string;
+  /**
+   * Literal colour the hollow `a` is stroked in. It cannot be `currentColor`:
+   * a custom property holding `currentColor` is substituted as that same
+   * keyword and then re-resolves against the child's own `color`, which is the
+   * transparent one that knocks the fill out — so the stroke disappears too.
+   * The caller passes the surface's ink instead (white on the dark footer).
+   */
+  ink?: string;
 }) {
   const mark = size === "lg" ? "h-7 w-7" : size === "md" ? "h-6 w-6" : "h-5 w-5";
   const type = size === "lg" ? "text-[26px]" : size === "md" ? "text-[22px]" : "text-[20px]";
@@ -67,19 +76,29 @@ export function WordMark({
   return (
     <span className={`inline-flex items-center ${gap} ${className}`}>
       <ArkaGlyph className={mark} title={title} />
-      <span className={`${type} lowercase tracking-[-0.2px] leading-none`}>
+      <span
+        className={`${type} lowercase tracking-[-0.2px] leading-none`}
+        style={{ "--mark-ink": ink } as React.CSSProperties}
+      >
         heyark
         {/*
-          Hollow `a`: transparent fill with a 1px stroke of the inherited colour.
-          `-webkit-text-stroke` is the only way to outline live text without
-          converting it to a path, and it is supported everywhere this ships.
-          The fallback if it is ignored is a normal solid `a`, which is a
-          degraded lockup rather than a broken one.
+          Hollow `a`: the fill is knocked out and only the outline remains.
+
+          The obvious spelling — `-webkit-text-stroke: 1px currentColor` plus
+          `color: transparent` — renders NOTHING: currentColor resolves against
+          this element's own colour, which is the transparent one, so the
+          outline is transparent too. Routing it through a custom property does
+          not help either, because `currentColor` survives substitution as a
+          keyword and re-resolves here all the same. Hence the literal `ink`,
+          set on the parent and read back as a plain colour value.
+
+          0.75px rather than 1px: at 20px type a full pixel reads as a bolder
+          letter instead of a hollow one.
+
+          `-webkit-` prefixed because that is the only form any engine ships;
+          the unprefixed property is not implemented anywhere.
         */}
-        <span
-          className="[-webkit-text-stroke:1px_currentColor]"
-          style={{ color: "transparent" }}
-        >
+        <span className="[-webkit-text-stroke:0.75px_var(--mark-ink)] text-transparent">
           a
         </span>
       </span>
