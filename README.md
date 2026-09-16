@@ -1,6 +1,10 @@
-# HeyArka
+<img src="docs/images/logo.png" alt="HeyArka" width="260">
 
 **Almost every LLM trading agent pipes raw headlines straight into a model that places orders. None of them can prove that pipe isn't hijackable. HeyArka is the measurement.**
+
+> **The name.** *Arka* is "ark" — the vessel built before the flood arrives, by someone who was not yet being rained on. That is the argument this project makes about agent security: you test the hull in the dry season. *Hey* is the address, because the tool is something you call, in one command, before you trust an agent with an order.
+>
+> The mark says the same thing twice. Three unequal bars are a **diff**: the same agent run twice, once bare and once shielded, with the middle column standing clear. And the final `a` of the wordmark is hollow — it looks like the others until you actually look at it, which is precisely the homoglyph attack this tool exists to catch.
 
 A published attack ([arXiv:2601.13082](https://arxiv.org/abs/2601.13082)) showed that a single day of Unicode-homoglyph and hidden-text headline manipulation cut annual returns by up to **17.7 percentage points** across FinBERT, FinGPT, FinLLaMA and six general LLMs. The authors disclosed to trading platforms and **proposed no defense**.
 
@@ -33,8 +37,42 @@ No API keys. No network calls. `pnpm attack` runs the full 16-vector attack corp
 
 ---
 
+## Who this is for, and what problem it solves
+
+A trading agent that reads the news has an input no other trading system has: **attacker-controlled text**. Anyone who can get a headline in front of your agent — a press release, a scraped aggregator, a compromised RSS item, a post your sentiment feed ingests — is writing directly into the context of the thing that places your orders. Price feeds can be validated against an exchange. Prose cannot.
+
+The specific failure is that the manipulation is invisible. A Cyrillic `А` and a Latin `A` are different characters that render as the same glyph. A zero-width joiner carries instructions no human reader sees. Your analyst reads the headline, sees nothing wrong, and signs off; the model reads different bytes and flips the position.
+
+**Three concrete users:**
+
+| Who | What they do with it | Why they cannot do it today |
+|---|---|---|
+| A desk running an LLM agent | `arka attack --agent ./my-agent.js` before deploy, and again in CI on every prompt change | Nobody ships an adversarial test suite for trading agents; prompt changes go out untested |
+| A team integrating someone else's agent | `arka attack --repo <url> --entry agent.js` to score a dependency from the outside | You currently trust a vendor's agent on their word |
+| Anyone already in production | `@heyarka/shield` in front of the feed, and the canary A/B to prove the filter costs nothing on clean input | A filter with no false-positive measurement is not deployable |
+
+The distinction that matters for judging: HeyArka is **not another trading agent**. It is the thing that audits trading agents — including the other agents in this hackathon, all of which pipe raw RSS into a model. It is measurement infrastructure, so its value does not depend on winning a 7-day Sharpe contest.
+
+---
+
+## What it looks like
+
+The landing page states the claim; the dashboard proves it live, computing both grades on request rather than reading a stored file.
+
+<img src="docs/images/dashboard.png" alt="The HeyArka dashboard: the same agent scored unshielded (grade C, 31.3% injection, 25.0% risk violations) and shielded (grade B, 12.5%, 0.0%), computed on request" width="100%">
+
+Every figure above was produced by the same functions that back `arka attack --demo`, on that request. The millisecond stamp in the header is the real compute time for that page load, so it differs on every visit — which is the point: the page cannot be showing you a cached result.
+
+<img src="docs/images/desk.png" alt="HeyArka Desk: paste a symbol, price and headlines, and the full attack corpus runs against that exact context" width="100%">
+
+`/desk` is the second-track entry (**AI Trading Desk → Decision Stress Testing**): you paste the thesis you are actually trading on, and the corpus runs against your own words. It states its own scope limits on the page rather than in a footnote.
+
+---
+
 ## Table of contents
 
+- [Who this is for, and what problem it solves](#who-this-is-for-and-what-problem-it-solves)
+- [What it looks like](#what-it-looks-like)
 - [The one-command proof](#the-one-command-proof)
 - [What "attack" actually means](#what-attack-actually-means)
 - [Architecture](#architecture)
