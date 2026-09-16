@@ -83,9 +83,9 @@ export const CORPUS = {
 } as const;
 
 export const TESTS = {
-  total: 125,
+  total: 131,
   byPackage: [
-    { name: "@heyarka/core", count: 42 },
+    { name: "@heyarka/core", count: 48 },
     { name: "@heyarka/shield", count: 24 },
     { name: "@heyarka/cli", count: 29 },
     { name: "@heyarka/canary", count: 22 },
@@ -94,12 +94,26 @@ export const TESTS = {
 } as const;
 
 /**
- * The live repo-agent proof: HeyArka cloning a genuinely separate git repo
- * and attacking the agent inside it.
+ * The live repo-agent proof: HeyArka cloning a genuinely separate git repo via
+ * `arka attack --repo <url> --entry <path>` and attacking the agent inside it,
+ * with none of HeyArka's code in that repo.
+ *
+ * What is claimed here is the CAPABILITY, not a specific rate. A susceptibility
+ * rate is a property of the agent under test, so quoting one number for "a
+ * cloned repo" would be meaningless out of context and unreproducible by a
+ * reader who does not have that exact agent. The figure below is from a
+ * keyword-sentiment agent of the shape most RSS-reading submissions use, and it
+ * is labelled as such rather than presented as a universal result.
+ *
+ * Re-verify: init any repo exporting { name, decide }, then
+ *   arka attack --repo <path-or-url> --entry agent.mjs
+ *
+ * Last verified: 2026-09-16.
  */
 export const REPO_RUN = {
   grade: "B",
-  injectionSusceptibility: "18.8%",
+  injectionSusceptibility: "12.5%",
+  subject: "a keyword-sentiment agent in a separate git repo",
 } as const;
 
 export const PAPERS = [
@@ -116,14 +130,38 @@ export const PAPERS = [
 ] as const;
 
 /**
- * The canary A/B is live, but control and shielded have agreed on every real
- * tick so far — no adversarial headline has organically appeared in the feed
- * during the run. There is therefore NO PnL delta to display, and the page
- * must not imply one. This string is the honest statement of that.
+ * The live canary.
+ *
+ * What this experiment claims, precisely: it is a **controlled A/B under
+ * identical conditions**, not a profit result. Two Bitget Demo accounts, the
+ * same symbol, the same live Cointelegraph feed, the same agent logic, ticking
+ * together; the only difference between them is `@heyarka/shield`.
+ *
+ * The quantitative finding is the AGREEMENT RATE, and it is a real finding in
+ * both directions. Every tick where control and shielded agree is a measured
+ * instance of the shield imposing no cost on clean input — the false-positive
+ * question, which is the first thing anyone sensible asks about a filter. A
+ * tick where they diverge would be a measured instance of the shield changing
+ * an order that a hostile headline would otherwise have changed.
+ *
+ * No PnL delta is claimed and none should be inferred. Over this window no
+ * adversarial headline organically appeared in the feed, so the honest reading
+ * is "the shield cost nothing on N clean ticks," not "the shield made money."
+ * Figures below are transcribed from reports/canary.jsonl; re-derive with:
+ *   node -e "..." over that file, or read the file directly.
+ *
+ * Last verified: 2026-09-16.
  */
 export const CANARY = {
   cadence: "every 15 minutes",
   account: "Bitget Demo (paper) only, never live funds",
+  ticks: 13,
+  spanHours: 45.5,
+  /** Ticks on which a real Demo order was actually placed, per account. */
+  ordersPlaced: 6,
+  agreementRate: "13 of 13",
+  claim:
+    "A controlled A/B under identical conditions: same symbol, same live feed, same agent, shield the only variable.",
   divergence:
-    "Control and shielded have agreed on every tick so far. No attributable PnL delta exists yet, so none is claimed.",
+    "Control and shielded agreed on all 13 ticks, so the shield imposed no cost on clean input over 45.5 hours. No adversarial headline organically appeared in the window, so no attributable PnL delta exists and none is claimed.",
 } as const;

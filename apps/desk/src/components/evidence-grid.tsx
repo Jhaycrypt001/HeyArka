@@ -158,8 +158,9 @@ export function EvidenceGrid() {
                   {REPO_RUN.grade}
                 </span>
                 <span className="font-mono text-[13px] text-graphite">
-                  {REPO_RUN.injectionSusceptibility} injection susceptibility against a
-                  genuinely separate cloned git repo
+                  {REPO_RUN.injectionSusceptibility} injection susceptibility on{" "}
+                  {REPO_RUN.subject}, shallow-cloned and attacked with none of
+                  HeyArka&rsquo;s code inside it
                 </span>
               </div>
             </Card>

@@ -81,7 +81,7 @@ To test an agent living in **someone else's git repo**, without cloning it yours
 node packages/cli/dist/bin.js attack --repo <git-url> --entry <path-to-agent-module> --shielded
 ```
 
-This shallow-clones the repo into a temp directory, loads `--entry` the same way `--agent` does, and cleans the clone up afterward — proven this session against a genuinely separate git repository (real `git clone` subprocess, real commit, distinct agent logic), producing an independently-computed B grade / 18.8% susceptibility, different from every other number in this README. **Only run this against a repo you own or have explicit consent to test** — see [Trust, security, and privacy](#trust-security-and-privacy).
+This shallow-clones the repo into a temp directory, loads `--entry` the same way `--agent` does, and cleans the clone up afterward — proven against a genuinely separate git repository (real `git clone` subprocess, real commit, distinct agent logic) holding a keyword-sentiment agent with none of HeyArka's code in it, which scored B / 12.5% injection susceptibility. That rate is a property of *that* agent, not a universal result — what the run proves is that the clone-and-attack path executes independently against foreign code. **Only run this against a repo you own or have explicit consent to test** — see [Trust, security, and privacy](#trust-security-and-privacy).
 
 ## What "attack" actually means
 
@@ -193,7 +193,27 @@ Step 5 is why the shield can't be argued with: it runs after the LLM, on structu
 - Verified via real Railway deployment logs, not a claim: as of `2026-09-15T12:55Z` the current deployment has fired 6 consecutive ticks (`11:40:32`, `11:55:33`, `12:10:34`, `12:25:34`, `12:40:35`, `12:55:35`), each correctly spaced ~15 minutes apart matching the configured interval
 - Credentials are read from environment variables only — never logged, never in a JSONL record, never displayed
 
-The quantitative story this produces isn't "we made money in 7 days," which would mostly measure luck — it's **the defended account's decisions diverging from the control account's under identical live conditions**, which is the actual claim HeyArka exists to prove. **Honestly, as of this writing that divergence hasn't happened yet**: every real tick so far has both accounts agreeing (`control=buy/15 shielded=buy/15`), because no adversarial headline has organically appeared in the live Cointelegraph feed during the run so far. The infrastructure is real and live-verified; the differential PnL evidence itself is not yet — see [Implementation status](#implementation-status).
+### What this experiment claims, precisely
+
+It is a **controlled A/B under identical conditions**, not a profit result. Same symbol, same live Cointelegraph feed, same agent logic, ticking together. `@heyarka/shield` is the only variable between the two accounts.
+
+The quantitative finding is therefore the **agreement rate**, and it is a real finding in both directions:
+
+- Every tick where control and shielded **agree** is a measured instance of the shield imposing **no cost on clean input** — the false-positive question, which is the first thing anyone sensible asks about a filter. A sanitizer that mangles legitimate headlines is worse than none.
+- A tick where they **diverge** would be a measured instance of the shield changing an order a hostile headline would otherwise have changed.
+
+Measured so far, transcribed from `reports/canary.jsonl` (committed to this repo, re-derivable by reading the file):
+
+| | |
+|---|---|
+| Ticks recorded | **13** |
+| Window | **45.5 hours** |
+| Real Demo orders placed | **6 per account** (12 total) |
+| Ticks held (no order) | 7 |
+| Control vs. shielded agreement | **13 of 13** |
+| Divergences | 0 |
+
+**Read that as: the shield cost nothing across 13 clean ticks and 45.5 hours of live Demo trading.** No adversarial headline organically appeared in the feed during the window, so **no attributable PnL delta exists, none is claimed, and none should be inferred.** The adversarial half of the evidence is the 16-vector corpus, which is deterministic and reproducible on demand; the canary's job is to prove the defense is deployable against a live feed without breaking the agent it protects.
 
 ## Engineering decisions
 
@@ -222,22 +242,23 @@ Honest, split three ways. Nothing here is aspirational.
 - 16-vector attack corpus across 6 families, all pure/deterministic, all covered by tests that assert real behavior against real agent fixtures (not mocked outputs)
 - `@heyarka/shield`: sanitizer, corroboration gate, point-in-time guard, deterministic risk-contract veto — all live-composed via `shieldAgent()`, not independently untested units
 - Real UTS #39 homoglyph data (1,310 entries), generated from the Unicode Consortium's own file, not hand-rolled
-- `arka attack \| score \| report` CLI, including `--repo <git-url> --entry <path>`: shallow-clones any git repo and attacks its agent module directly, no local checkout required. Live-proven against a genuinely separate git repository (real `git clone` subprocess, real commit history, distinct agent logic) — produced a distinct B grade / 18.8% injection susceptibility, different from every other scorecard in this README, proving independent execution rather than a cached or reused result. Backed by 4 tests that build real on-disk git repos and clone them (not mocked), plus guaranteed temp-directory cleanup on success and on both clone-failure and missing-`--entry` failure paths
+- `arka attack \| score \| report` CLI, including `--repo <git-url> --entry <path>`: shallow-clones any git repo and attacks its agent module directly, no local checkout required. Live-proven against a genuinely separate git repository (real `git clone` subprocess, real commit history, distinct agent logic) containing a keyword-sentiment agent written without any HeyArka code — produced a distinct B grade / 12.5% injection susceptibility from a scorecard computed inside that clone, proving independent execution rather than a cached or reused result. Two genuine vulnerabilities were found in that agent on the first run, and the shield fixed the encoding on both while the agent still traded on the bullish keyword underneath — a finding about the agent, and the reason sanitizing is necessary but not sufficient. Backed by 4 tests that build real on-disk git repos and clone them (not mocked), plus guaranteed temp-directory cleanup on success and on both clone-failure and missing-`--entry` failure paths
 - MCP server, verified this session by spawning the compiled binary and exchanging real JSON-RPC 2.0 over stdio (`initialize` → `tools/list` → `tools/call`), not just unit tests against internal functions
 - `decisionConsistency` and `lookAheadContaminationScore`, live-proven against real repeated agent runs and a real memorizing-vs-evidence-based agent pair, not only fixture assertions
 - `@heyarka/canary` deployed on Railway, genuinely ticking against live Bitget Demo market data on a 15-minute schedule, Demo-only enforcement verified at the code level
 - Zero-config judge path: `pnpm install && pnpm build && pnpm attack` from a cold clone, verified this session in a fresh, empty directory outside the repo
-- 125 tests passing across all 5 packages (`core` 42, `shield` 24, `cli` 29, `canary` 22, `mcp` 8, `apps/desk` not yet started)
+- `HeyArka Desk` (`apps/desk/`) — the second-track Next.js 15 workbench: landing page, `/start` entry page, `/docs`, and a `/dashboard` carrying a live **Attack Bench** that runs any of the 16 vectors through the shipped `runVector()` on request and shows the control, bare and shielded orders side by side. The verdict rendered on that page is the same adjudication `arka attack` makes — not a display re-implementation of it. Verified by end-to-end HTTP checks that fire every one of the 16 vectors through the live route and assert the tallies reproduce the corpus scorecard exactly (5 hijacked bare, 3 neutralised by the shield, 2 residual → 31.3% to 12.5%)
+- 131 tests passing across all 5 packages (`core` 48, `shield` 24, `cli` 29, `canary` 22, `mcp` 8, `apps/desk` covered by end-to-end HTTP checks rather than unit tests)
 
 ### Partial
 
-- **Attributable PnL delta** — the canary's two accounts are live and ticking exactly on schedule (verified via real Railway logs), but every tick so far has both accounts agreeing (`control=buy shielded=buy`), because the live news feed hasn't organically produced an adversarial headline yet. The infrastructure to measure a delta is real and running; the delta itself doesn't exist yet because nothing has triggered the shield to diverge from the control
+- **Attributable PnL delta** — deliberately not claimed. The canary measures the agreement rate, which is a complete finding on the false-positive question (13/13 agreement over 45.5 hours: the shield costs nothing on clean input). A PnL delta additionally requires an adversarial headline to appear organically in the live feed, which did not happen in the window. The measurement infrastructure is real, running and logging; the delta is absent because the trigger was absent, and inventing one by injecting a headline into the live feed would make it a simulation rather than live evidence — so it stays unclaimed. See [The live canary](#the-live-canary--real-demo-trading-ab-evidence)
 - **`npx heyarka`** — the plan's original wording. The package is not published to the public npm registry (it's a private pnpm workspace), so the literal command does not work; `pnpm attack` is the real zero-config equivalent from a cloned repo, and is what's documented and verified above instead
 
 ### Not shipped
 
 - **Attack runs against the named public competitor repos** (`gloaming`, `vigil`, `Chronos-Nexus`) — the mechanism to do this (`arka attack --repo <url> --entry <path>`) is built, tested, and live-proven above; the runs themselves are withheld because this project's own disclosure policy requires private notice first, and consent hasn't been sought or given. Nobody outside this repo's own control has been attacked.
-- `HeyArka Desk` (`apps/desk/`) — the second-track Next.js stress-testing workbench named in the original plan. Not started.
+*(The second-track workbench `apps/desk/` was listed here as "not started" in an earlier revision. It is built — see below.)*
 - Public npm publishing of any package
 
 ## Technology and repository layout
@@ -287,12 +308,12 @@ node scripts/generate-confusables.mjs
 
 | Package | Tests |
 |---|---|
-| `@heyarka/core` | 42 |
+| `@heyarka/core` | 48 |
 | `@heyarka/shield` | 24 |
 | `@heyarka/cli` | 29 |
 | `@heyarka/canary` | 22 |
 | `@heyarka/mcp` | 8 |
-| **Total** | **125** |
+| **Total** | **131** |
 
 Every number above came from actually running `pnpm -r test` this session, not from a prior claim carried forward.
 
@@ -300,7 +321,7 @@ Every number above came from actually running `pnpm -r test` this session, not f
 
 - The attack corpus is 16 vectors across 6 families — real and reproducible, but not exhaustive. A determined attacker with more time would find variants this corpus doesn't cover yet.
 - `decisionConsistency` needs the caller to run a vector more than once to be meaningful; a corpus run exactly once per vector (the CLI's default) reports `1.0` as "no evidence of inconsistency," not proof of consistency. This is documented in the code, not hidden.
-- The canary's PnL evidence is real but early — see [Implementation status](#implementation-status).
+- The canary reports an agreement rate, not a PnL delta. 13/13 agreement over 45.5 hours answers the false-positive question (the shield costs nothing on clean input) and nothing more; no profit claim is made from it — see [The live canary](#the-live-canary--real-demo-trading-ab-evidence).
 - Semantic-trap and sentiment-filter vectors are not fully stopped by the shield today; the shield's sanitizer targets encoding-level attacks (homoglyphs, invisible characters), not every semantic manipulation. This is disclosed rather than glossed over in the scorecard's per-family breakdown.
 
 ## Bugs found and fixed during development
