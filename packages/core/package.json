@@ -1,0 +1,15 @@
+{
+  "name": "@heyarka/core",
+  "version": "0.1.0",
+  "description": "Attack corpus, mutation engine, and scoring math for HeyArka",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "license": "MIT"
+}

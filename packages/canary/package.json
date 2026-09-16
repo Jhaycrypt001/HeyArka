@@ -1,0 +1,20 @@
+{
+  "name": "@heyarka/canary",
+  "version": "0.1.0",
+  "description": "Reference A/B agent on Bitget Demo (paper) trading: a control account and a @heyarka/shield-defended account run the same decision logic against live demo market data, proving the shield's effect with real, non-simulated PnL",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": { "heyarka-canary": "./dist/bin.js" },
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@heyarka/core": "workspace:*",
+    "@heyarka/shield": "workspace:*"
+  },
+  "license": "MIT"
+}

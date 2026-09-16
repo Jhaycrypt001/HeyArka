@@ -1,0 +1,31 @@
+{
+  "name": "@heyarka/mcp",
+  "version": "0.1.0",
+  "description": "MCP server exposing HeyArka's attack corpus, shield, and scorecard as tools for Claude, Cursor, and other MCP clients",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "heyarka-mcp": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@heyarka/core": "workspace:*",
+    "@heyarka/shield": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "4.6.5"
+  },
+  "license": "MIT"
+}

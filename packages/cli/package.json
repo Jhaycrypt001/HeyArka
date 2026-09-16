@@ -1,0 +1,30 @@
+{
+  "name": "@heyarka/cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for HeyArka: run the attack corpus against an agent, score the results, and render a report card",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": { "arka": "./dist/bin.js" },
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./demo-agent": {
+      "types": "./dist/demo-agent.d.ts",
+      "default": "./dist/demo-agent.js"
+    },
+    "./demo-context": {
+      "types": "./dist/demo-context.d.ts",
+      "default": "./dist/demo-context.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@heyarka/core": "workspace:*",
+    "@heyarka/shield": "workspace:*"
+  },
+  "license": "MIT"
+}

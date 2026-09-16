@@ -1,0 +1,19 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.local
+.next/
+out/
+
+# Generated report cards are build artifacts, regenerable from the JSONL.
+reports/*.html
+
+# The canary's JSONL log is NOT ignored: it is the submission's quantitative
+# evidence, a committed A/B record of control and shielded accounts trading the
+# same live feed. It carries prices, headlines, orders and balances only; the
+# credential loader keeps keys out of it, and an e2e check scans every tick for
+# credential-shaped fields. The daemon's stderr log is noise, so that one goes.
+reports/canary-daemon.log
+
+.DS_Store

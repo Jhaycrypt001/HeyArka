@@ -1,0 +1,398 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens from `hey arka tokens.json` / `heyarka theme.css`.
+ *
+ * DELIBERATE DEVIATION from the supplied theme.css: the `--spacing-*` block
+ * is NOT inside `@theme`. In Tailwind v4 the `--spacing-*` namespace
+ * *generates* the entire spacing scale, so declaring `--spacing-4: 4px`
+ * would redefine `p-4` as 4px (instead of 16px) and delete every step not
+ * explicitly listed (`p-5`, `gap-3`, `mt-10`, ...). The tokens live in
+ * `:root` below and are referenced as `p-[var(--spacing-32)]` where an exact
+ * token value is required. Tailwind's default `--spacing: 0.25rem` scale
+ * stays intact.
+ */
+@theme {
+  /* Colors */
+  --color-pure-white: #ffffff;
+  --color-obsidian: #000000;
+  --color-soft-mist: #f2f2f2;
+  --color-pale-stone: #eaeaea;
+  --color-bone: #e5e5e5;
+  --color-graphite: #575757;
+  --color-smoke: #929292;
+  --color-charcoal: #212121;
+  --color-silhouette: #c7c7c7;
+  --color-warm-sandstone: #a8927c;
+  --color-forest-sovereignty: #193a29;
+  --color-dusty-iris: #79648c;
+  --color-slate-blue: #839cb2;
+
+  /* Typography — families are wired to next/font variables in layout.tsx */
+  --font-aeonik: var(--font-sans-stack), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-mono-stack), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+
+  /* Typography — scale */
+  --text-micro-label: 11px;
+  --text-micro-label--line-height: 1;
+  --text-micro-label--letter-spacing: 0.55px;
+  --text-caption: 14px;
+  --text-caption--line-height: 1.5;
+  --text-caption--letter-spacing: 0.35px;
+  --text-body-sm: 16px;
+  --text-body-sm--line-height: 1.5;
+  --text-body: 20px;
+  --text-body--line-height: 1.5;
+  --text-body--letter-spacing: -0.2px;
+  --text-subheading-sm: 24px;
+  --text-subheading-sm--line-height: 1.5;
+  --text-subheading-sm--letter-spacing: -0.24px;
+  --text-subheading: 32px;
+  --text-subheading--line-height: 1.19;
+  --text-subheading--letter-spacing: -0.32px;
+  --text-heading-sm: 36px;
+  --text-heading-sm--line-height: 1.1;
+  --text-heading-sm--letter-spacing: -0.36px;
+  --text-heading: 40px;
+  --text-heading--line-height: 1.25;
+  --text-heading--letter-spacing: -0.4px;
+  --text-heading-lg: 64px;
+  --text-heading-lg--line-height: 1.05;
+  --text-heading-lg--letter-spacing: -0.64px;
+  --text-display: 116px;
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -1.16px;
+
+  /* Border radius */
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-3xl-2: 32px;
+
+  /* Shadows */
+  --shadow-subtle: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px,
+    rgba(0, 0, 0, 0.1) 0px 1px 2px -1px;
+}
+
+:root {
+  /* Spacing — see note above: intentionally outside @theme */
+  --spacing-unit: 4px;
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-56: 56px;
+  --spacing-64: 64px;
+  --spacing-96: 96px;
+  --spacing-128: 128px;
+  --spacing-160: 160px;
+
+  /* Layout */
+  --page-max-width: 1280px;
+  --section-gap: 64px;
+  --card-padding: 32px;
+  --element-gap: 16px;
+
+  /* Named radii */
+  --radius-tags: 8px;
+  --radius-cards: 16px;
+  --radius-buttons: 8px;
+  --radius-nested-cards: 12px;
+  --radius-feature-panels: 24px;
+
+  /* Surfaces */
+  --surface-canvas: #ffffff;
+  --surface-soft-mist: #f2f2f2;
+  --surface-pale-stone: #eaeaea;
+  --surface-bone: #e5e5e5;
+  --surface-accent-wash: #a8927c;
+  --surface-dark-void: #000000;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--surface-canvas);
+  color: var(--color-obsidian);
+  font-family: var(--font-aeonik);
+  /* DESIGN.md: preserve the typeface's geometric character */
+  font-feature-settings: "ss02" on;
+}
+
+/*
+ * DESIGN.md is emphatic that headings use weight 400 — authority comes from
+ * size and tracking, not weight. Browsers default h1-h6 to bold, so this
+ * resets them at the element level rather than relying on every call site.
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 400;
+}
+
+/* The page content rail: 1280px max, with the observed viewport gutter. */
+.page-rail {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+  padding-inline: var(--spacing-20);
+}
+
+/*
+ * The stat card's horizontal slide-in. The distance is supplied inline as
+ * `--slide` by the component (it is scroll-driven, so it cannot live in a
+ * stylesheet), but whether it applies at all is a layout question: a single
+ * stacked column on a phone has no room for 64px of travel, so the motion is
+ * enabled only from `lg` up. Below that the cards simply sit where they
+ * belong instead of half off-screen.
+ */
+.statcard-slide {
+  transform: none;
+}
+@media (min-width: 1024px) {
+  .statcard-slide {
+    transform: translate3d(var(--slide, 0px), 0, 0);
+  }
+}
+
+/*
+ * Scroll-reveal primitive. Elements start shifted and transparent; an
+ * IntersectionObserver adds [data-revealed] once they enter the viewport.
+ * Under reduced-motion the initial state is already the final state, so
+ * content is never hidden from users who opt out (or if JS fails).
+ */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Marquee for the capability card row. */
+@keyframes marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    /* The track renders its children twice; -50% lands on the seam. */
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 48s linear infinite;
+}
+
+.marquee-viewport:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/*
+ * Integration-card connectors. `pathLength="1"` on the path normalises every
+ * connector to unit length, so this one keyframe drives paths of different
+ * real lengths at the same apparent speed. The dash is 8% of the path with a
+ * 92% gap, which reads as a single travelling pulse rather than a marching
+ * dashed line.
+ */
+@keyframes connector-pulse {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+.connector-pulse {
+  stroke-dasharray: 0.08 0.92;
+  animation: connector-pulse 4s linear infinite;
+}
+
+/* Breathing ring around the shield mark at the centre of the corpus map. */
+@keyframes shield-halo {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 0;
+  }
+}
+
+.shield-halo {
+  animation: shield-halo 3s ease-in-out infinite;
+}
+
+/*
+ * Stack-spread: the clustered evidence cards that scatter on scroll. The
+ * transforms are scroll-driven and therefore set inline by the component;
+ * only the non-positional properties live here.
+ */
+.spread-card {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/*
+ * Footer ground.
+ *
+ * The brief was a footer background that is emphatically *not* the default
+ * dark-gradient-plus-blurred-blobs every generated landing page ships. So
+ * this is built from the project's own subject matter instead of generic
+ * decoration: the footer floor is a homoglyph confusable field.
+ *
+ * Three layers, all pure CSS — no images, no canvas, no dependency:
+ *
+ *   1. `.footer-confusables` — the animated character field lives in the
+ *      component as real text (the actual Cyrillic/Latin confusable pairs the
+ *      corpus uses), so it is content, not a texture.
+ *   2. `.footer-scanline` — a 3px repeating gradient, the CRT register the
+ *      wireframes already use, at very low contrast.
+ *   3. `.footer-glow` — a single sandstone pool bleeding up from the bottom
+ *      edge, which is what keeps the giant wordmark from floating in a void.
+ *
+ * Everything is `pointer-events: none` and `aria-hidden` at the call site.
+ */
+.footer-scanline {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.035) 0px,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.footer-glow {
+  background:
+    radial-gradient(
+      120% 100% at 12% 108%,
+      rgba(168, 146, 124, 0.3) 0%,
+      rgba(168, 146, 124, 0.09) 38%,
+      transparent 68%
+    ),
+    radial-gradient(
+      90% 80% at 88% 118%,
+      rgba(131, 156, 178, 0.18) 0%,
+      transparent 62%
+    );
+}
+
+/*
+ * The confusable characters drift upward and fade, so the floor reads as
+ * something being continuously scanned rather than a static pattern. Each
+ * span gets its own delay/duration inline, so one keyframe serves all of them.
+ */
+@keyframes confusable-drift {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  18% {
+    opacity: var(--peak, 0.5);
+  }
+  82% {
+    opacity: var(--peak, 0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+.confusable-glyph {
+  animation: confusable-drift var(--dur, 9s) ease-in-out var(--delay, 0s) infinite;
+}
+
+/* SVG line-art draw-on for the wireframe schematics. */
+.draw-path {
+  stroke-dasharray: var(--path-length, 1000);
+  stroke-dashoffset: var(--path-length, 1000);
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--draw-delay, 0ms);
+}
+
+[data-revealed] .draw-path {
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .marquee-track {
+    animation: none;
+    /* Without the animation the doubled track would overflow; show one set. */
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .draw-path {
+    stroke-dashoffset: 0;
+    transition: none;
+  }
+
+  /*
+   * The pulse and halo are decorative loops with no resting state worth
+   * showing, so they stop entirely. The component also gates them in JS via
+   * usePrefersReducedMotion; this is the belt to that braces, covering the
+   * first paint before the media query is read on the client.
+   */
+  .connector-pulse,
+  .shield-halo {
+    animation: none;
+  }
+
+  .shield-halo {
+    opacity: 0.4;
+  }
+
+  /*
+   * The footer field stops drifting but stays visible — it is the ground the
+   * wordmark sits on, so removing it entirely would change the composition
+   * rather than just calming it.
+   */
+  .confusable-glyph {
+    animation: none;
+    opacity: var(--peak, 0.5);
+    transform: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
