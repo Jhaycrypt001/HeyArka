@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
+  <!--
+    The HeyArka mark, identical geometry to ArkaGlyph in components/glyphs.tsx.
+    Kept as a separate file rather than generated from the component because
+    Next.js serves app/icon.svg statically; a generated icon would mean a route
+    handler running per request for a file that never changes.
+
+    Colours are literal here (no currentColor) because a favicon has no
+    inheriting parent: white bars on the brand obsidian, which keeps the mark
+    legible against both light and dark browser chrome.
+  -->
+  <rect width="24" height="24" fill="#000000"/>
+  <rect x="3" y="9" width="4" height="12" fill="#ffffff"/>
+  <rect x="9.5" y="5.5" width="4" height="15.5" fill="#ffffff"/>
+  <rect x="16" y="3" width="4" height="14" fill="#ffffff"/>
+</svg>

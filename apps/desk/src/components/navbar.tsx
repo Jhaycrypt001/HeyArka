@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArkaGlyph } from "./glyphs";
+import { WordMark } from "./glyphs";
 import { ButtonFilled, ButtonOutlined } from "./ui";
 
 /**
@@ -35,9 +35,8 @@ export function Navbar() {
         className="mx-auto flex h-[68px] w-full max-w-[var(--page-max-width)] items-center px-[var(--spacing-20)]"
         aria-label="Primary"
       >
-        <a href="/#top" className="flex items-center gap-[var(--spacing-8)]">
-          <ArkaGlyph className="h-5 w-5 text-obsidian" title="HeyArka" />
-          <span className="text-[20px] lowercase tracking-[-0.2px]">heyarka</span>
+        <a href="/#top" className="flex items-center text-obsidian">
+          <WordMark size="sm" title="HeyArka" />
         </a>
 
         <ul className="ml-[var(--spacing-48)] hidden items-center gap-[var(--spacing-24)] md:flex">

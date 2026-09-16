@@ -1,5 +1,5 @@
 import { TagChip } from "./ui";
-import { ArkaGlyph } from "./glyphs";
+import { WordMark } from "./glyphs";
 import { CANARY, PAPERS, REPO_RUN, SHIELDED, UNSHIELDED } from "@/lib/facts";
 
 /**
@@ -102,10 +102,7 @@ export function EvidenceGrid() {
             <Card surface="slate" className="min-h-[360px] justify-between">
               <TagChip label="Proof" accent="#ffffff33" onImage />
               <div className="flex flex-1 items-center justify-center gap-[var(--spacing-32)] py-[var(--spacing-32)]">
-                <div className="flex items-center gap-[var(--spacing-12)]">
-                  <ArkaGlyph className="h-7 w-7 text-obsidian" />
-                  <span className="text-[26px] lowercase text-obsidian">heyarka</span>
-                </div>
+                <WordMark size="lg" className="text-obsidian" />
                 <span className="h-10 w-px bg-black/25" />
                 <div className="flex items-baseline gap-[var(--spacing-12)]">
                   <span className="text-[44px] leading-none text-obsidian">

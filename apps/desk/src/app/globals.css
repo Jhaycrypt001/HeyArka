@@ -127,8 +127,13 @@ body {
   background: var(--surface-canvas);
   color: var(--color-obsidian);
   font-family: var(--font-aeonik);
-  /* DESIGN.md: preserve the typeface's geometric character */
-  font-feature-settings: "ss02" on;
+  /*
+   * No `font-feature-settings` override. DESIGN.md's "ss02" note describes
+   * Aeonik, which this project does not license; the substitute is Inter, whose
+   * ss02 is a different stylistic set entirely and reshapes letterforms rather
+   * than preserving them. Forcing one font's feature tag onto another is how
+   * the body copy ended up looking subtly wrong. Inter's defaults are correct.
+   */
 }
 
 /*

@@ -23,17 +23,67 @@ export function ArkaGlyph({
       fill="none"
     >
       {/*
-        A shield whose upper-left corner is folded back, revealing the
-        character hiding underneath — the attack behind the defense.
-        Flat fill, legible from 16px to 400px.
+        Three bars of unequal height, read as a diff: the same agent run twice,
+        with the middle column standing clear of its neighbours. Squared ends,
+        flat fill, no radius — it survives a 16px favicon because there is
+        nothing in it that can turn to mud.
+
+        Heights and offsets are set so the silhouette is asymmetric at any size;
+        an evenly-stepped rail reads as a generic chart icon instead.
       */}
-      <path
-        d="M7 2h13v11.2c0 4.3-3 8.1-8 8.8-5-0.7-8-4.5-8-8.8V5l3-3z"
-        fill="currentColor"
-      />
-      {/* The fold: a notch cut out of the corner, reading as lifted paper. */}
-      <path d="M7 2v3H4l3-3z" fill="currentColor" opacity="0.45" />
+      <rect x="3" y="9" width="4" height="12" fill="currentColor" />
+      <rect x="9.5" y="5.5" width="4" height="15.5" fill="currentColor" />
+      <rect x="16" y="3" width="4" height="14" fill="currentColor" />
     </svg>
+  );
+}
+
+/**
+ * The full lockup: the diff mark plus the wordmark.
+ *
+ * The final `a` is drawn hollow rather than solid. That is the homoglyph tell —
+ * the last character looks like the others until you look at it, which is the
+ * entire attack class this tool exists to catch. It is a brand idea that is
+ * also the thesis, so it is worth the extra span.
+ *
+ * `size` scales the mark and the type together; the two are optically matched
+ * at each size rather than derived by a ratio, because a mark that is
+ * mathematically proportional to cap height reads as too small next to
+ * lowercase letterforms.
+ */
+export function WordMark({
+  className = "",
+  size = "sm",
+  title,
+}: {
+  className?: string;
+  size?: "sm" | "md" | "lg";
+  title?: string;
+}) {
+  const mark = size === "lg" ? "h-7 w-7" : size === "md" ? "h-6 w-6" : "h-5 w-5";
+  const type = size === "lg" ? "text-[26px]" : size === "md" ? "text-[22px]" : "text-[20px]";
+  const gap = size === "lg" ? "gap-[var(--spacing-12)]" : "gap-[var(--spacing-8)]";
+
+  return (
+    <span className={`inline-flex items-center ${gap} ${className}`}>
+      <ArkaGlyph className={mark} title={title} />
+      <span className={`${type} lowercase tracking-[-0.2px] leading-none`}>
+        heyark
+        {/*
+          Hollow `a`: transparent fill with a 1px stroke of the inherited colour.
+          `-webkit-text-stroke` is the only way to outline live text without
+          converting it to a path, and it is supported everywhere this ships.
+          The fallback if it is ignored is a normal solid `a`, which is a
+          degraded lockup rather than a broken one.
+        */}
+        <span
+          className="[-webkit-text-stroke:1px_currentColor]"
+          style={{ color: "transparent" }}
+        >
+          a
+        </span>
+      </span>
+    </span>
   );
 }
 
