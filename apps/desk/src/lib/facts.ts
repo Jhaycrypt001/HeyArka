@@ -160,8 +160,7 @@ export const CANARY = {
   /** Ticks on which a real Demo order was actually placed, per account. */
   ordersPlaced: 15,
   agreementRate: "22 of 22",
-  claim:
-    "A controlled A/B under identical conditions: same symbol, same live feed, same agent, shield the only variable.",
+  claim: "Same symbol, same live feed, same agent. The shield is the only variable.",
   divergence:
-    "Control and shielded agreed on all 22 ticks, so the shield imposed no cost on clean input over 53.1 hours. No adversarial headline organically appeared in the window, so no attributable PnL delta exists and none is claimed.",
+    "Control and shielded have agreed on all 22 ticks. The shield costs nothing on clean input. No PnL delta is claimed.",
 } as const;

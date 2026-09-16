@@ -417,9 +417,9 @@ export default async function DashboardPage() {
                 Canary
               </dt>
               <dd className="mt-[var(--spacing-8)] text-[13px] leading-[1.6] text-graphite">
-                {CANARY.claim} {CANARY.ticks} ticks over {CANARY.spanHours}h,{" "}
-                {CANARY.ordersPlaced} real orders per account on{" "}
-                {CANARY.account}. {CANARY.divergence}
+                {CANARY.ticks} ticks over {CANARY.spanHours}h,{" "}
+                {CANARY.ordersPlaced} real orders per account.{" "}
+                {CANARY.claim} {CANARY.divergence}
               </dd>
             </div>
             <div>

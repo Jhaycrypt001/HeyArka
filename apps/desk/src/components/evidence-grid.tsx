@@ -159,8 +159,7 @@ export function EvidenceGrid() {
                 </span>
                 <span className="font-mono text-[13px] text-graphite">
                   {REPO_RUN.injectionSusceptibility} injection susceptibility on{" "}
-                  {REPO_RUN.subject}, shallow-cloned and attacked with none of
-                  HeyArka&rsquo;s code inside it
+                  {REPO_RUN.subject}, cloned and attacked from the outside
                 </span>
               </div>
             </Card>
