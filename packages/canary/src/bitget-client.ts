@@ -17,6 +17,13 @@ import type { BitgetCredentials } from "./credentials.js";
 
 const BASE_URL = "https://api.bitget.com";
 
+/**
+ * Every request is bounded. 20s is far above Bitget's normal response time and
+ * well under the canary's 15-minute tick interval, so a timeout can never
+ * overlap the next tick.
+ */
+const REQUEST_TIMEOUT_MS = 20_000;
+
 export interface BitgetTicker {
   symbol: string;
   lastPrice: number;
@@ -111,6 +118,14 @@ export class BitgetDemoClient {
         "paptrading": "1",
       },
       body: method === "POST" ? bodyStr : undefined,
+      /*
+       * Node's fetch has no default timeout, so a stalled socket hangs this
+       * await forever. In the canary that is worse than an error: the loop
+       * never reaches its next tick, so the daemon stops producing evidence
+       * while the process still looks healthy. A bounded request turns that
+       * silent death into an ordinary caught error the loop recovers from.
+       */
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
     const json = (await response.json()) as { code: string; msg: string; data: T };

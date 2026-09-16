@@ -14,6 +14,9 @@ import type { NewsItem } from "@heyarka/core";
 
 const FEED_URL = "https://cointelegraph.com/rss";
 
+/** Bounded so a stalled feed cannot hang a tick indefinitely. */
+const FEED_TIMEOUT_MS = 20_000;
+
 function extractTag(itemXml: string, tag: string): string | undefined {
   const cdataMatch = itemXml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>`));
   if (cdataMatch?.[1] !== undefined) return cdataMatch[1].trim();
@@ -72,7 +75,12 @@ export function filterByWindow(items: NewsItem[], options: { asOf: Date; windowM
  * of the shield's own point-in-time guard) within `windowMs` before it.
  */
 export async function fetchLatestNews(options: { asOf: Date; windowMs: number }): Promise<NewsItem[]> {
-  const response = await fetch(FEED_URL, { headers: { "User-Agent": "HeyArka-Canary/0.1 (+https://github.com)" } });
+  const response = await fetch(FEED_URL, {
+    headers: { "User-Agent": "HeyArka-Canary/0.1 (+https://github.com)" },
+    // Bounded for the same reason as the Bitget client: an unbounded fetch that
+    // stalls stops the canary's loop silently instead of raising a tick error.
+    signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch news feed ${FEED_URL}: HTTP ${response.status}`);
   }

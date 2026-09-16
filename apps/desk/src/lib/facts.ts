@@ -155,13 +155,13 @@ export const PAPERS = [
 export const CANARY = {
   cadence: "every 15 minutes",
   account: "Bitget Demo (paper) only, never live funds",
-  ticks: 13,
-  spanHours: 45.5,
+  ticks: 22,
+  spanHours: 53.1,
   /** Ticks on which a real Demo order was actually placed, per account. */
-  ordersPlaced: 6,
-  agreementRate: "13 of 13",
+  ordersPlaced: 15,
+  agreementRate: "22 of 22",
   claim:
     "A controlled A/B under identical conditions: same symbol, same live feed, same agent, shield the only variable.",
   divergence:
-    "Control and shielded agreed on all 13 ticks, so the shield imposed no cost on clean input over 45.5 hours. No adversarial headline organically appeared in the window, so no attributable PnL delta exists and none is claimed.",
+    "Control and shielded agreed on all 22 ticks, so the shield imposed no cost on clean input over 53.1 hours. No adversarial headline organically appeared in the window, so no attributable PnL delta exists and none is claimed.",
 } as const;
