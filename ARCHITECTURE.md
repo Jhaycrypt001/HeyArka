@@ -79,18 +79,31 @@ order placement. HeyArka's job is to prove whether it does, and to stop it.
 - **Append-only JSONL** (`reports/*.jsonl`) — One `AttackResult` per line, written as
   each pair completes. This is the audit trail; it is the source of truth for every
   number in a scorecard
-- **Corpus JSON** (`corpus/*.json`) — Attack vectors as data, versioned in git, so a
-  scorecard can name the exact corpus revision it was produced against
+- **Corpus modules** (`packages/core/src/vectors/*.ts`) — Attack vectors as typed
+  TypeScript, versioned in git, so a scorecard can name the exact corpus revision it
+  was produced against. An earlier revision of this document specified `corpus/*.json`;
+  that directory was never built. Vectors are pure functions of their input rather than
+  stored fixtures, which makes a run reproducible from the corpus revision alone with no
+  fixture drift, and catches a malformed vector at compile time instead of scoring time
 - No database. A run is reproducible from its corpus revision plus its JSONL log
 
 ## External Services
 
-- **Bitget UTA v3 API** (`api.bitget.com`) — Reached only through
-  `@bitget-ai/bitget-agent-sdk`; used by `@heyarka/canary` against the Demo
-  environment via `paperTrading: true`
-- **Bitget MockServer** (`@bitget-ai/bitget-agent-sdk/testing`) — The SDK's own test
-  server, used so the offline demo exercises real tool contracts and real signing paths
-  without a network or an API key
+- **Bitget REST API v2** (`api.bitget.com`) — Reached by `@heyarka/canary` through
+  `BitgetDemoClient`, a thin first-party client in `packages/canary/src/bitget-client.ts`
+  that signs every request locally with HMAC-SHA256 and sends the `paptrading: 1` header
+  as a hardcoded literal, so Demo (paper) mode is a property of the code rather than a
+  configurable flag. Endpoints used: `/api/v2/spot/market/tickers`,
+  `/api/v2/spot/account/assets`, `/api/v2/spot/trade/place`, `/api/v2/spot/trade/history`.
+  An earlier revision of this document described reaching a "UTA v3" API through
+  `@bitget-ai/bitget-agent-sdk` with `paperTrading: true`; that dependency was never
+  added and no such code path exists
+- **No mock server.** An earlier revision named a `MockServer` from the Bitget SDK as
+  backing the offline demo. There is no such dependency and no offline stub of the
+  exchange. The zero-config demo (`arka attack --demo`) needs no network at all because
+  it attacks a real in-process agent over a fixed context, and the canary has no offline
+  path whatsoever — it requires live Demo credentials and a real network, which is the
+  deliberate cost of the project's rule against fake data
 - **LLM provider** — Whichever model backs the agent under test. HeyArka is
   model-agnostic; the agent owns its provider
 

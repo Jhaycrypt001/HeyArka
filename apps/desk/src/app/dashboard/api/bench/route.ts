@@ -17,6 +17,13 @@ import { bench } from "@/lib/dashboard";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * The longest id in the shipped corpus is 38 characters
+ * (`sentiment-filter-manufactured-crowding`). 128 leaves room for vectors added
+ * later while still bounding what a caller can make this route read back.
+ */
+const MAX_VECTOR_ID_LENGTH = 128;
+
 export async function POST(request: Request) {
   let payload: unknown;
   try {
@@ -30,6 +37,20 @@ export async function POST(request: Request) {
 
   if (vectorId === null) {
     return NextResponse.json({ error: "Field 'vectorId' must be a string." }, { status: 400 });
+  }
+
+  /*
+   * Every real corpus id is a short kebab-case slug, so anything longer is not
+   * a near-miss worth a helpful message. Rejecting on length before the lookup
+   * keeps an arbitrarily large body from being read back out in the 404 below:
+   * echoing unbounded caller input is free response amplification, and the
+   * error is more useful without it anyway.
+   */
+  if (vectorId.length > MAX_VECTOR_ID_LENGTH) {
+    return NextResponse.json(
+      { error: `Field 'vectorId' must be ${MAX_VECTOR_ID_LENGTH} characters or fewer.` },
+      { status: 400 },
+    );
   }
 
   try {

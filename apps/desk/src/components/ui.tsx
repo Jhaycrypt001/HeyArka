@@ -103,34 +103,6 @@ export function ButtonWithChevron({
   );
 }
 
-/**
- * Flat feature card: white (or tinted), 16px radius, NO shadow, 32px padding.
- * DESIGN.md is explicit that elevation comes from tone and spacing only.
- */
-export function FlatCard({
-  children,
-  surface = "white",
-  className = "",
-}: {
-  children: ReactNode;
-  surface?: "white" | "mist" | "bone";
-  className?: string;
-}) {
-  const bg =
-    surface === "mist"
-      ? "bg-soft-mist"
-      : surface === "bone"
-        ? "bg-bone"
-        : "bg-pure-white";
-  return (
-    <div
-      className={`rounded-[var(--radius-cards)] p-[var(--card-padding)] ${bg} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
 /** Rounded chip holding a mono-stroke icon — used on the benchmark cards. */
 export function IconChip({
   children,
