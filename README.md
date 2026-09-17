@@ -225,10 +225,12 @@ Step 5 is why the shield can't be argued with: it runs after the LLM, on structu
 
 ## The live canary — real Demo-trading A/B evidence
 
-`@heyarka/canary` is deployed and running right now on Railway, ticking against **live Bitget Demo market data** every 15 minutes — a control agent and a `@heyarka/shield`-defended agent, same decision logic, same live prices, two real (paper) Demo accounts.
+`@heyarka/canary` ticks against **live Bitget Demo market data** every 15 minutes — a control agent and a `@heyarka/shield`-defended agent, same decision logic, same live prices, two real (paper) Demo accounts. It runs as a local daemon against the live Bitget API; there is no hosted deployment, and the evidence is the committed JSONL log rather than a service someone has to take on trust.
+
+Two symbols run as **two separate experiments**, each with its own log: `reports/canary.jsonl` (BTCUSDT) and `reports/canary-eth.jsonl` (ETHUSDT). They are kept apart on purpose. The risk contract binds to the symbol the daemon is launched with (`allowedSymbols: [symbol]`), so each log is a clean single-variable A/B; pooling them would average two experiments into a number describing neither.
 
 - `BitgetDemoClient` sends the Demo/paper-trading marker **unconditionally** — it is not a base-URL switch that could be misconfigured, it's hardcoded into every request the client makes
-- Verified via real Railway deployment logs, not a claim: as of `2026-09-15T12:55Z` the current deployment has fired 6 consecutive ticks (`11:40:32`, `11:55:33`, `12:10:34`, `12:25:34`, `12:40:35`, `12:55:35`), each correctly spaced ~15 minutes apart matching the configured interval
+- The daemon **refuses to start** if `NODE_TLS_REJECT_UNAUTHORIZED=0` is set, rather than signing real API credentials onto a connection whose certificate it will not check
 - Credentials are read from environment variables only — never logged, never in a JSONL record, never displayed
 
 ### What this experiment claims, precisely
@@ -240,18 +242,18 @@ The quantitative finding is therefore the **agreement rate**, and it is a real f
 - Every tick where control and shielded **agree** is a measured instance of the shield imposing **no cost on clean input** — the false-positive question, which is the first thing anyone sensible asks about a filter. A sanitizer that mangles legitimate headlines is worse than none.
 - A tick where they **diverge** would be a measured instance of the shield changing an order a hostile headline would otherwise have changed.
 
-Measured so far, transcribed from `reports/canary.jsonl` (committed to this repo, re-derivable by reading the file):
+Measured so far on BTCUSDT. Every figure below is re-derived from the log by `node scripts/canary-figures.mjs`, which also re-runs the credential scan on each invocation and exits non-zero if anything credential-shaped ever reaches the log:
 
 | | |
 |---|---|
-| Ticks recorded | **13** |
-| Window | **45.5 hours** |
-| Real Demo orders placed | **6 per account** (12 total) |
+| Ticks recorded | **23** |
+| Window | **57.3 hours** |
+| Real Demo orders placed | **16 per account** (32 total) |
 | Ticks held (no order) | 7 |
-| Control vs. shielded agreement | **13 of 13** |
+| Control vs. shielded agreement | **23 of 23** |
 | Divergences | 0 |
 
-**Read that as: the shield cost nothing across 13 clean ticks and 45.5 hours of live Demo trading.** No adversarial headline organically appeared in the feed during the window, so **no attributable PnL delta exists, none is claimed, and none should be inferred.** The adversarial half of the evidence is the 16-vector corpus, which is deterministic and reproducible on demand; the canary's job is to prove the defense is deployable against a live feed without breaking the agent it protects.
+**Read that as: the shield cost nothing across 23 clean ticks and 57.3 hours of live Demo trading.** No adversarial headline organically appeared in the feed during the window, so **no attributable PnL delta exists, none is claimed, and none should be inferred.** The adversarial half of the evidence is the 16-vector corpus, which is deterministic and reproducible on demand; the canary's job is to prove the defense is deployable against a live feed without breaking the agent it protects.
 
 ## Engineering decisions
 
@@ -283,10 +285,10 @@ Honest, split three ways. Nothing here is aspirational.
 - `arka attack \| score \| report` CLI, including `--repo <git-url> --entry <path>`: shallow-clones any git repo and attacks its agent module directly, no local checkout required. Live-proven against a genuinely separate git repository (real `git clone` subprocess, real commit history, distinct agent logic) containing a keyword-sentiment agent written without any HeyArka code — produced a distinct B grade / 12.5% injection susceptibility from a scorecard computed inside that clone, proving independent execution rather than a cached or reused result. Two genuine vulnerabilities were found in that agent on the first run, and the shield fixed the encoding on both while the agent still traded on the bullish keyword underneath — a finding about the agent, and the reason sanitizing is necessary but not sufficient. Backed by 4 tests that build real on-disk git repos and clone them (not mocked), plus guaranteed temp-directory cleanup on success and on both clone-failure and missing-`--entry` failure paths
 - MCP server, verified this session by spawning the compiled binary and exchanging real JSON-RPC 2.0 over stdio (`initialize` → `tools/list` → `tools/call`), not just unit tests against internal functions
 - `decisionConsistency` and `lookAheadContaminationScore`, live-proven against real repeated agent runs and a real memorizing-vs-evidence-based agent pair, not only fixture assertions
-- `@heyarka/canary` deployed on Railway, genuinely ticking against live Bitget Demo market data on a 15-minute schedule, Demo-only enforcement verified at the code level
+- `@heyarka/canary` running as a local daemon against the live Bitget Demo API on a 15-minute schedule, two symbols logged separately, Demo-only enforcement verified at the code level
 - Zero-config judge path: `pnpm install && pnpm build && pnpm attack` from a cold clone, verified this session in a fresh, empty directory outside the repo
 - `HeyArka Desk` (`apps/desk/`) — the second-track Next.js 15 workbench: landing page, `/start` entry page, `/docs`, and a `/dashboard` carrying a live **Attack Bench** that runs any of the 16 vectors through the shipped `runVector()` on request and shows the control, bare and shielded orders side by side. The verdict rendered on that page is the same adjudication `arka attack` makes — not a display re-implementation of it. Verified by end-to-end HTTP checks that fire every one of the 16 vectors through the live route and assert the tallies reproduce the corpus scorecard exactly (5 hijacked bare, 3 neutralised by the shield, 2 residual → 31.3% to 12.5%)
-- 131 tests passing across all 5 packages (`core` 48, `shield` 24, `cli` 29, `canary` 22, `mcp` 8, `apps/desk` covered by end-to-end HTTP checks rather than unit tests)
+- 134 tests passing across all 5 packages (`core` 48, `shield` 24, `cli` 29, `canary` 25, `mcp` 8, `apps/desk` covered by end-to-end HTTP checks rather than unit tests)
 
 ### Partial
 
@@ -309,7 +311,7 @@ Honest, split three ways. Nothing here is aspirational.
 | Tests | Vitest 2.1 |
 | Protocol | Model Context Protocol (`@modelcontextprotocol/sdk` ^1.30) |
 | Trading | First-party `BitgetDemoClient` on Bitget REST v2, locally HMAC-signed, Demo/paper-trading only |
-| Deployment | Railway (canary only) |
+| Deployment | None. The CLI, shield and MCP server run locally; the canary is a local daemon writing a committed JSONL log |
 
 ```
 heyarka/
@@ -349,9 +351,9 @@ node scripts/generate-confusables.mjs
 | `@heyarka/core` | 48 |
 | `@heyarka/shield` | 24 |
 | `@heyarka/cli` | 29 |
-| `@heyarka/canary` | 22 |
+| `@heyarka/canary` | 25 |
 | `@heyarka/mcp` | 8 |
-| **Total** | **131** |
+| **Total** | **134** |
 
 Every number above came from actually running `pnpm -r test` this session, not from a prior claim carried forward.
 

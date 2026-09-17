@@ -58,6 +58,29 @@ async function main(): Promise<number> {
   const maxNotional = Number(flagValue(argv, "--max-notional") ?? "50");
   const placeOrders = !argv.includes("--dry-run");
 
+  /*
+   * Refuse to run with TLS verification disabled.
+   *
+   * This process signs every request with real Bitget API credentials. With
+   * NODE_TLS_REJECT_UNAUTHORIZED=0, Node accepts any certificate, so anything
+   * able to intercept the connection can present its own and read those
+   * credentials in flight. A Demo account is still an account.
+   *
+   * It is a hard exit rather than a warning because the variable is usually set
+   * ambiently in a shell, hours earlier, for some unrelated reason — exactly the
+   * case a printed warning scrolls past unread.
+   */
+  if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0") {
+    process.stderr.write(
+      "heyarka-canary: refusing to start — NODE_TLS_REJECT_UNAUTHORIZED=0 is set.\n" +
+        "This disables certificate verification for a process that sends signed API\n" +
+        "credentials to Bitget. Clear it and retry:\n" +
+        "  PowerShell:  Remove-Item Env:NODE_TLS_REJECT_UNAUTHORIZED\n" +
+        "  bash:        unset NODE_TLS_REJECT_UNAUTHORIZED\n",
+    );
+    return 1;
+  }
+
   const credentials = loadCredentialsFromEnv();
   const agent = createSentimentAgent({ baseNotional, maxNotional });
 

@@ -1,16 +1,33 @@
 /**
  * Re-derives every canary figure published on the site and in the README
- * straight from reports/canary.jsonl.
+ * straight from the canary logs in reports/.
  *
- * The canary keeps ticking, so these numbers move. Run this before submitting
+ * One log per symbol, and that separation is deliberate. The canary is a
+ * controlled A/B in which the shield is the only variable, so each symbol is
+ * its own experiment: pooling BTC and ETH ticks into a single agreement rate
+ * would average two different experiments into a number describing neither.
+ *
+ * The canaries keep ticking, so these numbers move. Run this before submitting
  * and copy the output into apps/desk/src/lib/facts.ts (CANARY) so the page
- * never claims a figure the log does not support.
+ * never claims a figure the logs do not support.
  *
  *   node scripts/canary-figures.mjs
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
-const LOG = "reports/canary.jsonl";
+const LOGS = readdirSync("reports")
+  .filter((f) => /^canary.*.jsonl$/.test(f))
+  .map((f) => `reports/${f}`)
+  .sort();
+
+if (LOGS.length === 0) {
+  console.error("No canary logs found in reports/.");
+  process.exit(1);
+}
+
+let anyLeak = false;
+
+for (const LOG of LOGS) {
 
 const ticks = readFileSync(LOG, "utf8")
   .split("\n")
@@ -19,7 +36,7 @@ const ticks = readFileSync(LOG, "utf8")
 
 if (ticks.length === 0) {
   console.error(`${LOG} has no ticks.`);
-  process.exit(1);
+  continue;
 }
 
 const first = new Date(ticks[0].timestamp);
@@ -52,7 +69,11 @@ const credentialShaped = [...fields].filter((f) =>
   /key|secret|pass|token|cred|sign|apikey|passphrase/i.test(f),
 );
 
+const symbol = ticks[0]?.symbol ?? "unknown";
+
 console.log(`
+${LOG}  (${symbol})
+
 CANARY = {
   ticks: ${ticks.length},
   spanHours: ${spanHours},
@@ -65,4 +86,7 @@ CANARY = {
   credential scan  ${credentialShaped.length === 0 ? "clean, no credential-shaped fields" : `LEAK: ${credentialShaped.join(", ")}`}
 `);
 
-if (credentialShaped.length > 0) process.exit(1);
+if (credentialShaped.length > 0) anyLeak = true;
+}
+
+if (anyLeak) process.exit(1);

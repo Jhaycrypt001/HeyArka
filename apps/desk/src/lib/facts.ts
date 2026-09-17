@@ -83,12 +83,12 @@ export const CORPUS = {
 } as const;
 
 export const TESTS = {
-  total: 131,
+  total: 134,
   byPackage: [
     { name: "@heyarka/core", count: 48 },
     { name: "@heyarka/shield", count: 24 },
     { name: "@heyarka/cli", count: 29 },
-    { name: "@heyarka/canary", count: 22 },
+    { name: "@heyarka/canary", count: 25 },
     { name: "@heyarka/mcp", count: 8 },
   ],
 } as const;
@@ -137,6 +137,12 @@ export const PAPERS = [
  * same symbol, the same live Cointelegraph feed, the same agent logic, ticking
  * together; the only difference between them is `@heyarka/shield`.
  *
+ * Two symbols run as two SEPARATE experiments, each with its own log
+ * (reports/canary.jsonl, reports/canary-eth.jsonl), because the risk contract
+ * binds to the launch symbol and pooling them would average two experiments
+ * into a number describing neither. The figures below are the BTCUSDT run, the
+ * longer of the two; ETHUSDT started later and is reported on its own.
+ *
  * The quantitative finding is the AGREEMENT RATE, and it is a real finding in
  * both directions. Every tick where control and shielded agree is a measured
  * instance of the shield imposing no cost on clean input — the false-positive
@@ -147,20 +153,21 @@ export const PAPERS = [
  * No PnL delta is claimed and none should be inferred. Over this window no
  * adversarial headline organically appeared in the feed, so the honest reading
  * is "the shield cost nothing on N clean ticks," not "the shield made money."
- * Figures below are transcribed from reports/canary.jsonl; re-derive with:
- *   node -e "..." over that file, or read the file directly.
+ * Re-derive every figure below, for every log, with:
+ *   node scripts/canary-figures.mjs
  *
- * Last verified: 2026-09-16.
+ * Last verified: 2026-09-17.
  */
 export const CANARY = {
   cadence: "every 15 minutes",
   account: "Bitget Demo (paper) only, never live funds",
-  ticks: 22,
-  spanHours: 53.1,
+  ticks: 23,
+  spanHours: 57.3,
   /** Ticks on which a real Demo order was actually placed, per account. */
-  ordersPlaced: 15,
-  agreementRate: "22 of 22",
+  ordersPlaced: 16,
+  agreementRate: "23 of 23",
+  symbols: "BTCUSDT and ETHUSDT, logged separately",
   claim: "Same symbol, same live feed, same agent. The shield is the only variable.",
   divergence:
-    "Control and shielded have agreed on all 22 ticks. The shield costs nothing on clean input. No PnL delta is claimed.",
+    "Control and shielded have agreed on all 23 ticks. The shield costs nothing on clean input. No PnL delta is claimed.",
 } as const;
