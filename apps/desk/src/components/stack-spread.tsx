@@ -321,7 +321,20 @@ const KICKER_TONE: Record<EvidenceCard["tone"], string> = {
   forest: "text-white/55",
 };
 
-/** Scroll distance the scatter is spread over, in vh. */
+/**
+ * Scroll distance the scatter is spread over, in vh.
+ *
+ * Desktop needs the length: the cards travel from a centre pile out to eight
+ * scattered slots, and compressing that reads as a jump cut.
+ *
+ * Mobile does not use it at all: there the section is ordinary flow content,
+ * because on a phone the cards do not travel — they are a static two-column
+ * grid. Paying 300vh of scroll for a layout with no animation in it meant
+ * roughly two and a half screens of half-empty page: a near-blank viewport at
+ * the top of the section, then a long dead centre, and the copy only arriving
+ * at ~2,300px in. Measured on the live build at 390x844, scroll offset 4400
+ * painted four faded cards around an empty middle.
+ */
 const SCROLL_LENGTH = 300;
 
 /**
@@ -350,17 +363,6 @@ function CardFace({ card, fill }: { card: EvidenceCard; fill: boolean }) {
   );
 }
 
-/**
- * Half-height, in vh, of the centre band the mobile copy is confined to.
- *
- * The cards are flowed into the strips above and below it rather than being
- * positioned against it, so this is a cap on the copy only — but it is what
- * guarantees those strips exist at all. At the previous 40vw x 17vh, with
- * cards centred at y=±19, four of the eight were drawn straight through the
- * headline and paragraph.
- */
-const SAFE_BAND = 20;
-
 export function StackSpread() {
   const wrapRef = useRef<HTMLElement>(null);
   const raw = useStickyProgress(wrapRef);
@@ -386,6 +388,65 @@ export function StackSpread() {
   // on the copy block below.
   const copy = Math.min(1, Math.max(0, (progress - COPY_START) / COPY_SPAN));
 
+  /*
+   * On touch the deck is an ordinary section, not a sticky stage.
+   *
+   * The sticky version exists so the cards have somewhere to travel while the
+   * page scrolls. Mobile has no travel — the cards are a fixed two-column grid
+   * — so the pin bought nothing and cost everything: a near-blank first
+   * viewport, a dead centre band, and copy that only faded in at ~2,300px into
+   * a 2,532px section. Reading order (headline, then the evidence it describes)
+   * is also simply the right structure on a phone, and it removes the whole
+   * class of overlap bugs by never putting text and cards in the same box.
+   */
+  if (coarse) {
+    return (
+      <section id="evidence-deck" className="w-full bg-soft-mist">
+        <div className="px-[var(--spacing-20)] py-[var(--spacing-64)]">
+          <div className="text-center">
+            <h2 className="text-[clamp(28px,7.6vw,40px)] leading-[1.1] tracking-[-0.4px] text-obsidian">
+              Adversarial Evaluation.
+              <br />
+              <span className="text-warm-sandstone">Real Proof.</span>
+            </h2>
+            <p className="mx-auto mt-[var(--spacing-16)] max-w-[46ch] text-body-sm leading-[1.6] text-graphite">
+              Every card below is a real artifact: a line from the audit log, a
+              codepoint the shield caught, a grade the harness assigned. Run{" "}
+              <span className="font-mono text-obsidian">arka attack --demo</span> and
+              you get the same strings.
+            </p>
+            <a
+              href="/#quickstart"
+              className="mt-[var(--spacing-24)] inline-flex h-11 items-center justify-center rounded-full bg-obsidian px-[var(--spacing-24)] text-body-sm text-pure-white transition-colors duration-200 hover:bg-charcoal"
+            >
+              Get Started
+            </a>
+          </div>
+
+          {/*
+            Reading order, not stack order. `CARDS` is ordered back-to-front for
+            the desktop pile, which is meaningless here; `sm.band`/`sm.row` is
+            the pipeline order the cards are meant to be read in.
+          */}
+          <div className="mt-[var(--spacing-40)] grid grid-cols-2 gap-[var(--spacing-8)]">
+            {[...CARDS]
+              .sort((a, b) => {
+                const band = (c: EvidenceCard) => (c.sm.band === "above" ? 0 : 1);
+                if (band(a) !== band(b)) return band(a) - band(b);
+                if (a.sm.row !== b.sm.row) return a.sm.row - b.sm.row;
+                return a.sm.side === "left" ? -1 : 1;
+              })
+              .map((card) => (
+                <div key={card.kicker} className="spread-card">
+                  <CardFace card={card} fill={false} />
+                </div>
+              ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       ref={wrapRef}
@@ -394,24 +455,12 @@ export function StackSpread() {
       style={{ height: `${SCROLL_LENGTH}vh` }}
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* Centre copy. */}
-        {/*
-          z-20, above the deck. On a phone the cards bank out of the centre
-          band rather than behind the text, but the copy is the content here
-          and must win any residual overlap — a 0.2vh rounding difference
-          should cost a shadow, not a lost sentence.
-        */}
+        {/* Centre copy. Desktop only — the touch layout returns above. */}
         <div
-          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-[var(--spacing-32)] text-center md:z-[5]"
+          className="pointer-events-none absolute inset-0 z-[5] flex flex-col items-center justify-center px-[var(--spacing-32)] text-center"
           style={{
             opacity: copy,
             transform: `scale(${reduced ? 1 : 0.9 + copy * 0.1})`,
-            // Keep the block inside the band the cards bank away from. The
-            // cards are anchored to this same constant, so the two cannot
-            // drift apart.
-            maxHeight: coarse ? `${SAFE_BAND * 2}vh` : undefined,
-            marginTop: coarse ? "auto" : undefined,
-            marginBottom: coarse ? "auto" : undefined,
           }}
         >
           {/*
@@ -422,18 +471,12 @@ export function StackSpread() {
             clamp keeps the widest line inside the ~600-720px safe zone at
             every viewport from 1280px up.
           */}
-          {/*
-            The lower bound of the clamp drops to 26px on a phone. The copy and
-            the two card bands together need 814 of 844px at 390x844, so the
-            block has to give back what the bands cannot: at 32px the paragraph
-            ran to six lines and the top band overlapped the heading by 25px.
-          */}
-          <h2 className="text-[clamp(26px,3.6vw,56px)] leading-[1.08] tracking-[-0.4px] text-obsidian sm:text-[clamp(32px,3.6vw,56px)] sm:leading-[1.05]">
+          <h2 className="text-[clamp(32px,3.6vw,56px)] leading-[1.05] tracking-[-0.4px] text-obsidian">
             Adversarial Evaluation.
             <br />
             <span className="text-warm-sandstone">Real Proof.</span>
           </h2>
-          <p className="mt-[var(--spacing-12)] max-w-[46ch] text-[13px] leading-[1.5] text-graphite sm:mt-[var(--spacing-24)] sm:text-body-sm sm:leading-relaxed">
+          <p className="mt-[var(--spacing-24)] max-w-[46ch] text-body-sm leading-relaxed text-graphite">
             Every card behind this line is a real artifact: a line from the audit log,
             a codepoint the shield caught, a grade the harness assigned. Run{" "}
             <span className="font-mono text-obsidian">arka attack --demo</span> and you
@@ -441,66 +484,14 @@ export function StackSpread() {
           </p>
           <a
             href="/#quickstart"
-            className="pointer-events-auto mt-[var(--spacing-16)] inline-flex h-11 items-center justify-center rounded-full bg-obsidian px-[var(--spacing-24)] text-body-sm text-pure-white transition-colors duration-200 hover:bg-charcoal sm:mt-[var(--spacing-32)]"
+            className="pointer-events-auto mt-[var(--spacing-32)] inline-flex h-11 items-center justify-center rounded-full bg-obsidian px-[var(--spacing-24)] text-body-sm text-pure-white transition-colors duration-200 hover:bg-charcoal"
           >
             Get Started
           </a>
         </div>
 
-        {/*
-          The deck, in one of two layouts.
-
-          These are structurally different, not one layout with different
-          numbers, because the constraints differ in kind. Desktop has room to
-          scatter cards around the copy and positions each absolutely. A phone
-          does not: the copy alone is ~40% of the viewport, so the cards have
-          to be *flowed* into the strips above and below it and allowed to size
-          themselves.
-
-          The absolute version was tried on mobile first and cannot work. Any
-          offset large enough to clear the inner row puts the tallest card's
-          top edge at 35px — under the 68px navbar — because a 121px card plus
-          that offset exceeds the 422px half-viewport. Flowing the rows in a
-          flex column makes the browser solve that, and no content change can
-          push a card off-screen again.
-        */}
-        {coarse ? (
-          // pt-[80px] clears the 68px sticky navbar: the deck sits inside a
-          // `sticky top-0 h-screen` stage, so its first row would otherwise
-          // start at y=0 and slide under the bar — which is where the JSONL
-          // card lost its kicker.
-          <div className="absolute inset-0 z-10 flex flex-col justify-between pb-[var(--spacing-16)] pt-[80px]">
-            {(["above", "below"] as const).map((band) => (
-              <div
-                key={band}
-                className="grid grid-cols-2 gap-[var(--spacing-8)] px-[var(--spacing-12)]"
-                style={{
-                  // Fades and lifts in with the same progress the desktop
-                  // scatter uses, so the section still responds to scroll.
-                  opacity: progress,
-                  transform: `translateY(${(1 - progress) * (band === "above" ? -18 : 18)}px)`,
-                }}
-              >
-                {CARDS.filter((c) => c.sm.band === band)
-                  // Row 0 sits nearest the copy: for the upper band that means
-                  // painting row 1 first, for the lower band row 0 first.
-                  .sort((a, b) =>
-                    band === "above" ? b.sm.row - a.sm.row : a.sm.row - b.sm.row,
-                  )
-                  .map((card) => (
-                    <div
-                      key={card.kicker}
-                      className="spread-card"
-                      style={{ gridColumn: card.sm.side === "left" ? 1 : 2 }}
-                    >
-                      <CardFace card={card} fill={false} />
-                    </div>
-                  ))}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="absolute inset-0 z-10">
+        {/* The scatter. Desktop only — the touch layout returns above. */}
+        <div className="absolute inset-0 z-10">
             {CARDS.map((card, i) => {
               const depth = parallaxOn ? parallaxDepth(i, CARDS.length) : 0;
 
@@ -533,8 +524,7 @@ export function StackSpread() {
                 </div>
               );
             })}
-          </div>
-        )}
+        </div>
 
         {/* Scroll hint, gone by the time the scatter begins. */}
         <div

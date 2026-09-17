@@ -67,7 +67,12 @@ export function CtaBand() {
   return (
     <section className="bg-pure-white px-[var(--spacing-20)]">
       <div className="overflow-hidden rounded-t-[var(--radius-feature-panels)] bg-warm-sandstone">
-        <div className="mx-auto grid w-full max-w-[var(--page-max-width)] items-center gap-[var(--spacing-48)] px-[var(--spacing-20)] py-[var(--spacing-96)] lg:grid-cols-[1fr_auto]">
+        {/*
+          py-64 on a phone rather than py-96. The band carries one heading, one
+          short paragraph and a button; at 96px top and bottom the card read as
+          mostly empty sandstone with its content cropped against the fold.
+        */}
+        <div className="mx-auto grid w-full max-w-[var(--page-max-width)] items-center gap-[var(--spacing-32)] px-[var(--spacing-20)] py-[var(--spacing-64)] lg:grid-cols-[1fr_auto] lg:gap-[var(--spacing-48)] lg:py-[var(--spacing-96)]">
           <div data-reveal>
             <h2 className="max-w-[420px] text-[clamp(28px,4vw,40px)] leading-[1.25] tracking-[-0.4px] text-obsidian">
               Break your agent
@@ -90,7 +95,18 @@ export function CtaBand() {
             </ButtonWithChevron>
           </div>
 
-          <ConstructionArt className="hidden h-[240px] w-[320px] shrink-0 justify-self-end lg:block" />
+          {/*
+            Shown at every width. It used to be `hidden lg:block`, which left
+            the phone layout with a tall empty sandstone card and no sign that
+            the band has an illustration at all.
+
+            Below `lg` it sits under the copy at a smaller size and centred,
+            rather than beside it: the grid is single-column there, so
+            `justify-self-end` would push the drawing against the right edge on
+            its own row. `w-full max-w` lets it shrink on a 390px viewport
+            instead of forcing the 320px intrinsic width and overflowing.
+          */}
+          <ConstructionArt className="h-[168px] w-full max-w-[280px] shrink-0 justify-self-center lg:h-[240px] lg:w-[320px] lg:justify-self-end" />
         </div>
       </div>
     </section>

@@ -35,7 +35,13 @@ const STREAM: ReadonlyArray<{ id: string; flipped: boolean }> = [
 
 function TerminalPanel() {
   return (
-    <div className="flex h-full w-full flex-col justify-end px-[6%] pb-[var(--spacing-24)] font-mono text-[clamp(9px,1.05vw,13px)] leading-[1.75] text-white/85">
+    // Anchored to the top of the band on phones, to its bottom from `sm` up.
+    // The panel is ten lines tall and the mobile band is shorter than that, so
+    // `justify-end` pushed the first line ("$ arka attack --demo") out through
+    // the top of the band. Anchoring from the top instead lets the tail of the
+    // list be the part that runs on, which is the right thing to lose from a
+    // streaming log.
+    <div className="flex h-full w-full flex-col justify-start overflow-hidden px-[6%] pb-[var(--spacing-24)] font-mono text-[clamp(9px,1.05vw,13px)] leading-[1.75] text-white/85 sm:justify-end">
       <div className="text-white/50">$ arka attack --demo</div>
       <div className="mt-[var(--spacing-8)] text-white/50">
         Running 16 attack vectors against heyarka-demo-agent...
@@ -59,7 +65,7 @@ function HomoglyphPanel() {
   // The Cyrillic Т (U+0422) is visually identical to Latin T (U+0054).
   const clean = "TSLA halts delivery guidance";
   return (
-    <div className="flex h-full w-full flex-col justify-end gap-[var(--spacing-20)] px-[6%] pb-[var(--spacing-24)] font-mono text-[clamp(9px,1.05vw,13px)] text-white/85">
+    <div className="flex h-full w-full flex-col justify-center gap-[var(--spacing-12)] overflow-hidden px-[6%] pb-[var(--spacing-24)] font-mono text-[clamp(9px,1.05vw,13px)] text-white/85 sm:justify-end sm:gap-[var(--spacing-20)]">
       <div>
         <div className="text-white/45">clean headline</div>
         <div className="mt-[var(--spacing-8)] text-[clamp(11px,1.35vw,17px)] text-white">
@@ -95,7 +101,7 @@ function GradePanel() {
     { card: SHIELDED, label: "shielded", accent: "text-white" },
   ];
   return (
-    <div className="flex h-full w-full items-end justify-center gap-[4%] px-[6%] pb-[var(--spacing-24)]">
+    <div className="flex h-full w-full items-center justify-center gap-[4%] overflow-hidden px-[6%] pb-[var(--spacing-24)] sm:items-end">
       {cards.map(({ card, label, accent }) => (
         <div key={label} className="flex flex-1 flex-col items-center">
           <div className="font-mono text-[clamp(9px,0.95vw,11px)] uppercase text-white/50">
@@ -150,7 +156,7 @@ export function Hero() {
           share the same optical space. The reference can overlap because its
           backdrop is footage; ours is text, and text over text is unreadable.
         */}
-        <div className="absolute inset-x-0 top-[var(--spacing-48)] bottom-[58%] md:bottom-[48%]">
+        <div className="absolute inset-x-0 top-[var(--spacing-40)] bottom-[68%] sm:top-[var(--spacing-48)] sm:bottom-[58%] md:bottom-[48%]">
           {PANELS.map((panel, i) => (
             <div
               key={panel.key}
@@ -171,8 +177,18 @@ export function Hero() {
         */}
         <div className="absolute inset-0 bg-gradient-to-b from-obsidian/10 via-obsidian/55 to-obsidian/90" />
 
-        {/* Persistent headline — does not change as panels cycle. */}
-        <div className="relative flex h-full min-h-[600px] flex-col justify-end px-[var(--spacing-24)] pb-[124px] text-center md:px-[var(--spacing-40)] md:pb-[150px]">
+        {/*
+          Persistent headline — does not change as panels cycle.
+
+          `top-[32%]` on phones is a reserved floor, not decoration: it pins the
+          headline block to the band below the panels instead of letting
+          `justify-end` grow it upward. Without it the block is only as tall as
+          its text, so a five-line wrap at 390px pushed the first line up behind
+          the cycling panel — which is how "Every LLM trading agent" ended up
+          drawn across the C/B grades. Now the two bands cannot intersect at any
+          width, whatever the headline wraps to.
+        */}
+        <div className="absolute inset-x-0 bottom-0 top-[32%] flex flex-col justify-center px-[var(--spacing-24)] pb-[var(--spacing-40)] text-center sm:relative sm:inset-auto sm:top-auto sm:h-full sm:min-h-[600px] sm:justify-end sm:pb-[124px] md:px-[var(--spacing-40)] md:pb-[150px]">
           {/*
             No explicit <br>: at this size the balanced wrap lands on two even
             lines on its own, and a hard break fought it into a ragged three.
@@ -187,7 +203,12 @@ export function Hero() {
             `radius` is larger than the section default because the type here
             is display-sized: at 52px a 130px radius barely spans two letters.
           */}
-          <h1 className="mx-auto max-w-[1120px] text-balance text-[clamp(30px,4.2vw,52px)] leading-[1.1] tracking-[-0.52px] text-pure-white">
+          {/*
+            26px floor on a phone. At 30px this sentence wrapped to five lines
+            and the block outgrew the band reserved for it; 26px holds it to
+            four at 390px while staying well above the 16px readability floor.
+          */}
+          <h1 className="mx-auto max-w-[1120px] text-balance text-[clamp(26px,4.2vw,52px)] leading-[1.14] tracking-[-0.52px] text-pure-white sm:text-[clamp(30px,4.2vw,52px)] sm:leading-[1.1]">
             <TextCursorProximity
               label="Every LLM trading agent can be hijacked by a character you can’t see."
               radius={220}
@@ -196,7 +217,7 @@ export function Hero() {
               to={{ color: "#a8927c", scale: 1.1, letterSpacing: "0.5px" }}
             />
           </h1>
-          <p className="mx-auto mt-[var(--spacing-24)] max-w-[620px] text-body text-white/70">
+          <p className="mx-auto mt-[var(--spacing-16)] max-w-[620px] text-body-sm text-white/70 sm:mt-[var(--spacing-24)] sm:text-body">
             HeyArka proves it, scores it, and hardens it in one command.
           </p>
         </div>

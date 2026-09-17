@@ -338,7 +338,14 @@ export function LayeredPlanes() {
               return (
                 <div
                   key={plane.id}
-                  className="absolute left-[8%] top-1/2 w-[76%] max-w-[560px]"
+                  // left-[18%] on phones, 8% from `sm` up. The sheets travel
+                  // left as the stack opens (x is negative and scales with
+                  // depth), so the anchor must leave room for that travel. At
+                  // 8% the rear sheet reached x=-99px and rendered at -26px,
+                  // measured off the left edge of a 390px viewport. The extra
+                  // 10% covers the full mobile travel without moving the
+                  // desktop composition.
+                  className="absolute left-[18%] top-1/2 w-[76%] max-w-[560px] sm:left-[8%]"
                   style={{
                     transform: `translate3d(${x}px, ${y - 105}px, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
                     transformStyle: "preserve-3d",
