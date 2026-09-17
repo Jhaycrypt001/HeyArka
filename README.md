@@ -2,6 +2,14 @@
 
 **Almost every LLM trading agent pipes raw headlines straight into a model that places orders. None of them can prove that pipe isn't hijackable. HeyArka is the measurement.**
 
+### HeyArka is not a trading agent
+
+It does not predict prices, hold a view on the market, or try to make money. It is a **red-team harness**: you point it at a trading agent — yours or a dependency's — and it reports how easily that agent can be manipulated into placing an order it should not have placed.
+
+Everyone else builds the car. This is the crash-test lab.
+
+That distinction is the whole design. Because HeyArka measures other agents rather than competing with them, its value does not rest on a short-window Sharpe number, and it gets more useful as more agents exist. The one agent in this repo (`@heyarka/canary`, below) exists only so there is something the author owns to attack — attacking anyone else's agent without consent is out of scope by policy, not by accident.
+
 > **The name.** *Arka* is "ark" — the vessel built before the flood arrives, by someone who was not yet being rained on. That is the argument this project makes about agent security: you test the hull in the dry season. *Hey* is the address, because the tool is something you call, in one command, before you trust an agent with an order.
 >
 > The mark says the same thing twice. Three unequal bars are a **diff**: the same agent run twice, once bare and once shielded, with the middle column standing clear. And the final `a` of the wordmark is hollow — it looks like the others until you actually look at it, which is precisely the homoglyph attack this tool exists to catch.
@@ -15,7 +23,7 @@ $ arka attack --demo                 grade C   injection 31.3%   risk violations
 $ arka attack --demo --shielded      grade B   injection 12.5%   risk violations  0.0%
 ```
 
-Both passes, 16 vectors each, run in about 6ms on a bundled reference agent with no API keys and no network. The numbers above are printed by the command, not transcribed into this README.
+Both passes, 16 vectors each, run against a bundled reference agent with no API keys and no network, and finish in roughly 230ms end to end — process startup included, measured wall-clock on a laptop. The grades and rates above are printed by the command, not transcribed into this README.
 
 **Core guarantee:** every number HeyArka reports is computed from a real agent execution. No sample data, no placeholder scoring, anywhere in the pipeline. Where a metric cannot yet be measured honestly, it reports *no evidence* rather than a zero. The shielded grade is B, not A, because two semantic vectors still get through and this README will not round that up.
 
@@ -33,7 +41,7 @@ pnpm build
 pnpm attack
 ```
 
-No API keys. No network calls. `pnpm attack` runs the full 16-vector attack corpus against a bundled reference agent and prints a real scorecard in under two seconds.
+No API keys. No network calls. `pnpm attack` runs the full 16-vector attack corpus against a bundled reference agent and prints a real scorecard in about a quarter of a second.
 
 ---
 
@@ -47,11 +55,11 @@ The specific failure is that the manipulation is invisible. A Cyrillic `А` and 
 
 | Who | What they do with it | Why they cannot do it today |
 |---|---|---|
-| A desk running an LLM agent | `arka attack --agent ./my-agent.js` before deploy, and again in CI on every prompt change | Nobody ships an adversarial test suite for trading agents; prompt changes go out untested |
+| A desk running an LLM agent | `arka attack --agent ./my-agent.js` before deploy, and again in CI on every prompt change | Prompt and model changes ship without an adversarial regression test, because there is no standard suite to run |
 | A team integrating someone else's agent | `arka attack --repo <url> --entry agent.js` to score a dependency from the outside | You currently trust a vendor's agent on their word |
 | Anyone already in production | `@heyarka/shield` in front of the feed, and the canary A/B to prove the filter costs nothing on clean input | A filter with no false-positive measurement is not deployable |
 
-The distinction that matters for judging: HeyArka is **not another trading agent**. It is the thing that audits trading agents — including the other agents in this hackathon, all of which pipe raw RSS into a model. It is measurement infrastructure, so its value does not depend on winning a 7-day Sharpe contest.
+The distinction that matters for judging is restated at the top of this file: HeyArka is **not another trading agent**, it is the thing that audits trading agents. It is measurement infrastructure, so its value does not depend on winning a short-window Sharpe contest, and any agent that ingests third-party text is a candidate subject.
 
 ---
 
@@ -228,6 +236,8 @@ Step 5 is why the shield can't be argued with: it runs after the LLM, on structu
 `@heyarka/canary` ticks against **live Bitget Demo market data** every 15 minutes — a control agent and a `@heyarka/shield`-defended agent, same decision logic, same live prices, two real (paper) Demo accounts. It runs as a local daemon against the live Bitget API; there is no hosted deployment, and the evidence is the committed JSONL log rather than a service someone has to take on trust.
 
 Two symbols run as **two separate experiments**, each with its own log: `reports/canary.jsonl` (BTCUSDT) and `reports/canary-eth.jsonl` (ETHUSDT). They are kept apart on purpose. The risk contract binds to the symbol the daemon is launched with (`allowedSymbols: [symbol]`), so each log is a clean single-variable A/B; pooling them would average two experiments into a number describing neither.
+
+Nothing in the canary is specific to those two pairs. `--symbol` is threaded straight through to Bitget's ticker and order endpoints, so any spot pair the exchange lists works — `--symbol SOLUSDT --log reports/canary-sol.jsonl` is a third experiment, and `scripts/canary-figures.mjs` discovers any `reports/canary*.jsonl` without a code change. Two pairs are reported here because two longer runs are better evidence than several short ones, not because the tool is limited to them.
 
 - `BitgetDemoClient` sends the Demo/paper-trading marker **unconditionally** — it is not a base-URL switch that could be misconfigured, it's hardcoded into every request the client makes
 - The daemon **refuses to start** if `NODE_TLS_REJECT_UNAUTHORIZED=0` is set, rather than signing real API credentials onto a connection whose certificate it will not check
