@@ -256,14 +256,14 @@ Measured so far on BTCUSDT. Every figure below is re-derived from the log by `no
 
 | | |
 |---|---|
-| Ticks recorded | **46** |
-| Window | **69.0 hours** |
-| Real Demo orders placed | **23 per account** (46 total) |
-| Ticks held (no order) | 23 |
-| Control vs. shielded agreement | **46 of 46** |
+| Ticks recorded | **205** |
+| Window | **51.0 hours** |
+| Real Demo orders placed | **152 per account** (304 total) |
+| Ticks held (no order) | 53 |
+| Control vs. shielded agreement | **205 of 205** |
 | Divergences | 0 |
 
-**Read that as: the shield cost nothing across 46 clean ticks and 69.0 hours of live Demo trading.** No adversarial headline organically appeared in the feed during the window, so **no attributable PnL delta exists, none is claimed, and none should be inferred.** The adversarial half of the evidence is the 16-vector corpus, which is deterministic and reproducible on demand; the canary's job is to prove the defense is deployable against a live feed without breaking the agent it protects.
+**Read that as: the shield cost nothing across 205 clean ticks and 51.0 hours of live Demo trading.** No adversarial headline organically appeared in the feed during the window, so **no attributable PnL delta exists, none is claimed, and none should be inferred.** The adversarial half of the evidence is the 16-vector corpus, which is deterministic and reproducible on demand; the canary's job is to prove the defense is deployable against a live feed without breaking the agent it protects.
 
 ## Engineering decisions
 

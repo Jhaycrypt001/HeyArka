@@ -1,0 +1,47 @@
+## The HeyArka Desk (apps/desk) — the Next.js workbench.
+##
+## Separate from the canary's Dockerfile because the two deploy as different
+## services from the same repo: the canary is a long-running process with a
+## volume, this is an HTTP server. Sharing one image would mean shipping the
+## canary's Bitget client into a public web service for no reason.
+##
+## Build order matters and is not negotiable. apps/desk imports @heyarka/core,
+## @heyarka/shield and @heyarka/cli as workspace packages, and its server routes
+## import their COMPILED output. `dist/` is gitignored, so a fresh clone has
+## none of it: the packages must be built with tsc before next build runs, or
+## the Next build fails resolving the imports.
+
+FROM node:22-slim AS build
+WORKDIR /app
+RUN corepack enable
+
+# Manifests first, so a source-only change does not invalidate the install layer.
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY packages/core/package.json packages/core/package.json
+COPY packages/shield/package.json packages/shield/package.json
+COPY packages/cli/package.json packages/cli/package.json
+COPY packages/mcp/package.json packages/mcp/package.json
+COPY packages/canary/package.json packages/canary/package.json
+COPY apps/desk/package.json apps/desk/package.json
+
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+
+# Step 1: compile the workspace packages to dist/.
+RUN pnpm build
+# Step 2: build the Next app, which can now resolve those dist/ entrypoints.
+RUN pnpm --filter @heyarka/desk build
+
+FROM node:22-slim AS run
+WORKDIR /app
+RUN corepack enable
+ENV NODE_ENV=production
+
+COPY --from=build /app /app
+
+WORKDIR /app/apps/desk
+# Bind 0.0.0.0, not the default localhost: a container listening only on the
+# loopback interface is unreachable from Railway's proxy and health-checks as
+# a failed deploy with no error in the application log.
+CMD ["sh", "-c", "npx next start -H 0.0.0.0 -p ${PORT:-3000}"]
