@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Pill } from "./dash-ui";
+import { VectorDropdown } from "./vector-dropdown";
 
 /**
  * The attack bench: the dashboard's hands-on half.
@@ -94,34 +95,29 @@ export function DashBench({ vectors }: { vectors: BenchVectorOption[] }) {
   return (
     <div className="flex flex-col gap-[var(--spacing-20)]">
       {/*
-        A native select rather than a chip rail: sixteen vectors would wrap to
-        four lines of chips on a phone, and the grouping by family is what makes
-        the list navigable.
+        A dropdown rather than a chip rail: sixteen vectors would wrap to four
+        lines of chips on a phone, and the grouping by family is what makes the
+        list navigable. See vector-dropdown.tsx for why it is not a native
+        <select> — <optgroup> cannot be styled to match this page.
       */}
       <div className="flex flex-col gap-[var(--spacing-12)] sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
-          <label
-            htmlFor="bench-vector"
+          <span
+            id="bench-vector-label"
             className="font-mono text-[10px] uppercase tracking-[0.55px] text-smoke"
           >
             Pick an attack vector
-          </label>
-          <select
-            id="bench-vector"
+          </span>
+          <VectorDropdown
+            options={vectors}
             value={selected}
-            onChange={(e) => {
-              setSelected(e.target.value);
+            labelId="bench-vector-label"
+            onChange={(id) => {
+              setSelected(id);
               setResult(null);
               setError(null);
             }}
-            className="mt-[var(--spacing-8)] w-full rounded-[var(--radius-nested-cards)] border border-bone bg-soft-mist px-[var(--spacing-12)] py-[var(--spacing-12)] font-mono text-[13px] text-obsidian outline-none transition-colors duration-200 focus:border-graphite"
-          >
-            {vectors.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.id} · {v.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <button
           type="button"
