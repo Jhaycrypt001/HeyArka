@@ -31,7 +31,7 @@ Both self-hosted via `next/font` — no external CDN, no layout shift.
 
 ### Tailwind v4 trap — do not copy `theme.css` verbatim
 
-`heyarka theme.css` puts `--spacing-4 … --spacing-160` inside `@theme`. In
+`design/theme.css` puts `--spacing-4 … --spacing-160` inside `@theme`. In
 Tailwind v4 the `--spacing-*` namespace **generates the whole spacing scale**,
 so declaring `--spacing-4: 4px` makes `p-4` mean `4px` (not `16px`) and
 deletes every unlisted step (`p-5`, `gap-3`, `mt-10`). Keep the colors, fonts,

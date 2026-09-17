@@ -311,7 +311,7 @@ Honest, split three ways. Nothing here is aspirational.
 | Tests | Vitest 2.1 |
 | Protocol | Model Context Protocol (`@modelcontextprotocol/sdk` ^1.30) |
 | Trading | First-party `BitgetDemoClient` on Bitget REST v2, locally HMAC-signed, Demo/paper-trading only |
-| Deployment | None. The CLI, shield and MCP server run locally; the canary is a local daemon writing a committed JSONL log |
+| Deployment | None. The CLI, shield and MCP server run locally; the canary is a local daemon writing a committed JSONL log. A `Dockerfile` for the canary is included but is **not currently verified** — it was written for a hosted deployment that is no longer used, and no Docker daemon was available to rebuild it for this submission |
 
 ```
 heyarka/

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Design tokens from `hey arka tokens.json` / `heyarka theme.css`.
+ * Design tokens from `design/tokens.json` / `design/theme.css`.
  *
  * DELIBERATE DEVIATION from the supplied theme.css: the `--spacing-*` block
  * is NOT inside `@theme`. In Tailwind v4 the `--spacing-*` namespace
