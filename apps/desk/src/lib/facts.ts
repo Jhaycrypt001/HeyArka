@@ -161,11 +161,11 @@ export const PAPERS = [
 export const CANARY = {
   cadence: "every 15 minutes",
   account: "Bitget Demo (paper) only, never live funds",
-  ticks: 31,
-  spanHours: 66.6,
+  ticks: 46,
+  spanHours: 69.0,
   /** Ticks on which a real Demo order was actually placed, per account. */
   ordersPlaced: 23,
-  agreementRate: "31 of 31",
+  agreementRate: "46 of 46",
   symbols: "BTCUSDT and ETHUSDT, logged separately",
   claim: "Same symbol, same live feed, same agent. The shield is the only variable.",
   divergence:
