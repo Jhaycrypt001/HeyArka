@@ -338,14 +338,22 @@ export function LayeredPlanes() {
               return (
                 <div
                   key={plane.id}
-                  // left-[18%] on phones, 8% from `sm` up. The sheets travel
-                  // left as the stack opens (x is negative and scales with
-                  // depth), so the anchor must leave room for that travel. At
-                  // 8% the rear sheet reached x=-99px and rendered at -26px,
-                  // measured off the left edge of a 390px viewport. The extra
-                  // 10% covers the full mobile travel without moving the
-                  // desktop composition.
-                  className="absolute left-[18%] top-1/2 w-[76%] max-w-[560px] sm:left-[8%]"
+                  // The anchor must leave room for the leftward travel, which
+                  // is negative and scales with depth. Two thresholds matter
+                  // and they are NOT the same one:
+                  //
+                  //   - `travel` doubles (46 -> 92) at `useCompact`'s 768px.
+                  //   - the anchor narrows here.
+                  //
+                  // Narrowing the anchor at `sm` (640px) put the widest travel
+                  // and the smallest margin in the same band: at 768px the max
+                  // offset is 3*92*0.72 = 199px against only 8%*768 = 61px of
+                  // anchor, and the rear sheet measured -22px with "SCORECARD"
+                  // clipped to "ORECARD". Holding 18% until `lg` keeps the
+                  // margin proportional to the travel through the whole tablet
+                  // band; 1024px is the first width where 8% clears it.
+                  // Measured clean at 390, 640, 768, 900, 1024 and 1280.
+                  className="absolute left-[18%] top-1/2 w-[76%] max-w-[560px] lg:left-[8%]"
                   style={{
                     transform: `translate3d(${x}px, ${y - 105}px, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
                     transformStyle: "preserve-3d",
