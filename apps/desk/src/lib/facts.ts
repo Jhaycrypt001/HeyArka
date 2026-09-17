@@ -11,6 +11,14 @@
  * Last verified: 2026-09-15 (see LANDING-SPEC.md §13).
  */
 
+/**
+ * The public repository. Defined once because it is linked from the navbar, the
+ * footer nav and the footer's social row; four hand-written copies is how three
+ * of them ended up pointing at a bare `https://github.com` that resolved to the
+ * site's own homepage rather than to this project.
+ */
+export const REPO_URL = "https://github.com/Jhaycrypt001/HeyArka";
+
 export interface FamilyResult {
   readonly label: string;
   readonly succeeded: number;

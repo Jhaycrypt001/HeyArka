@@ -1,3 +1,4 @@
+import { REPO_URL } from "@/lib/facts";
 import { ArkaGlyph, IconGitHub, IconX } from "./glyphs";
 import { FooterField } from "./footer-field";
 
@@ -54,7 +55,7 @@ const COLUMNS: ReadonlyArray<{
       { label: "Overview", href: "/docs" },
       { label: "Scorecard metrics", href: "/docs/scorecard" },
       { label: "Disclosure policy", href: "/docs/cli#attack" },
-      { label: "License (MIT)", href: "https://github.com" },
+      { label: "License (MIT)", href: `${REPO_URL}/blob/main/LICENSE` },
     ],
   },
   {
@@ -126,7 +127,7 @@ export function Footer() {
         <div className="mt-[var(--spacing-40)] flex flex-col gap-[var(--spacing-24)] border-t border-white/10 py-[var(--spacing-24)] md:mt-[var(--spacing-56)] md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-[var(--spacing-12)]">
             <a
-              href="https://github.com"
+              href={REPO_URL}
               aria-label="GitHub"
               className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-buttons)] bg-charcoal text-pure-white transition-colors duration-200 hover:bg-graphite"
             >

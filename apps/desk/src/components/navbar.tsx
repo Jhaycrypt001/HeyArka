@@ -1,6 +1,8 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { REPO_URL } from "@/lib/facts";
 import { WordMark } from "./glyphs";
 import { ButtonFilled, ButtonOutlined } from "./ui";
 
@@ -28,6 +30,18 @@ const LINKS = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  /*
+   * "Start" is the call to action for reaching the dashboard, so it is hidden
+   * on the two pages that are already the end of that path: /start itself, and
+   * /dashboard. Offering someone a button to the page they are reading reads as
+   * a dead control and costs the trust the rest of the bar is carrying.
+   *
+   * Prefix matching rather than equality, so a future /dashboard/<sub> route
+   * inherits the same behaviour instead of silently bringing the button back.
+   */
+  const onEntryPath = pathname === "/start" || pathname.startsWith("/dashboard");
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-bone bg-pure-white">
@@ -53,8 +67,8 @@ export function Navbar() {
         </ul>
 
         <div className="ml-auto hidden items-center gap-[var(--spacing-12)] md:flex">
-          <ButtonOutlined href="https://github.com">GitHub</ButtonOutlined>
-          <ButtonFilled href="/start">Start</ButtonFilled>
+          <ButtonOutlined href={REPO_URL}>GitHub</ButtonOutlined>
+          {!onEntryPath && <ButtonFilled href="/start">Start</ButtonFilled>}
         </div>
 
         <button
@@ -85,8 +99,8 @@ export function Navbar() {
             ))}
           </ul>
           <div className="mt-[var(--spacing-24)] flex items-center gap-[var(--spacing-12)]">
-            <ButtonOutlined href="https://github.com">GitHub</ButtonOutlined>
-            <ButtonFilled href="/start">Start</ButtonFilled>
+            <ButtonOutlined href={REPO_URL}>GitHub</ButtonOutlined>
+            {!onEntryPath && <ButtonFilled href="/start">Start</ButtonFilled>}
           </div>
         </div>
       )}
