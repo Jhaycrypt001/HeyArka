@@ -130,19 +130,53 @@ export function TextCursorProximity({
     letterSpacing: from.letterSpacing,
   };
 
+  /*
+   * Characters are grouped into words before rendering.
+   *
+   * Every character has to be its own `inline-block` for the proximity effect
+   * to scale and tint it independently — but an inline-block is also a line
+   * break opportunity, so a flat list of them lets the browser wrap mid-word.
+   * The pipeline heading was rendering as "Four layers betw / een a headline
+   * an / d an order."
+   *
+   * Wrapping each word in a `whitespace-nowrap` span restores word-level
+   * breaking while leaving the per-character spans exactly as they were. The
+   * original index into `label` is carried through to `charRefs`, so the
+   * effect's measurement loop is untouched by the regrouping.
+   */
+  const words: { char: string; index: number }[][] = [];
+  let word: { char: string; index: number }[] = [];
+  label.split("").forEach((char, i) => {
+    if (char === " ") {
+      if (word.length) words.push(word);
+      word = [];
+      words.push([{ char, index: i }]);
+    } else {
+      word.push({ char, index: i });
+    }
+  });
+  if (word.length) words.push(word);
+
   return (
     <span ref={containerRef} className={`inline-block ${className}`} aria-label={label}>
-      {label.split("").map((char, i) => (
+      {words.map((group) => (
         <span
-          key={`${char}-${i}`}
-          ref={(el) => {
-            charRefs.current[i] = el;
-          }}
-          aria-hidden="true"
-          className="inline-block will-change-transform"
-          style={restStyle}
+          key={group[0]!.index}
+          className={group[0]!.char === " " ? undefined : "whitespace-nowrap"}
         >
-          {char === " " ? " " : char}
+          {group.map(({ char, index }) => (
+            <span
+              key={index}
+              ref={(el) => {
+                charRefs.current[index] = el;
+              }}
+              aria-hidden="true"
+              className="inline-block will-change-transform"
+              style={restStyle}
+            >
+              {char === " " ? " " : char}
+            </span>
+          ))}
         </span>
       ))}
     </span>

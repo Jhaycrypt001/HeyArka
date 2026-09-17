@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useScrollProgress } from "./motion";
+import { usePrefersReducedMotion, useScrollProgress } from "./motion";
 import { TextCursorProximity } from "./text-cursor-proximity";
 import { UNSHIELDED, SHIELDED } from "@/lib/facts";
 import { Eyebrow } from "./ui";
@@ -169,10 +169,87 @@ function useCompact(): boolean {
   return compact;
 }
 
+/** How far the stack turns under the pointer, degrees at full deflection. */
+const SWING_Y = 26;
+const SWING_X = 12;
+
+/**
+ * Pointer position relative to an element's centre, -1..1 on each axis, and
+ * 0,0 whenever the pointer is away or the device is touch-only.
+ *
+ * Measured against the element rather than the window, so the stack turns to
+ * face wherever the cursor actually is over it instead of responding to
+ * movement in unrelated parts of the page. Listening on the window (not the
+ * element) keeps the turn continuous as the cursor approaches and leaves,
+ * which is what makes it read as one object rotating rather than a hover
+ * state snapping on.
+ *
+ * rAF-batched, and a no-op under reduced motion or a coarse pointer — the
+ * resting transform is already the legible one, so there is nothing to
+ * degrade to.
+ */
+function usePointerSwing(
+  ref: React.RefObject<HTMLElement | null>,
+  enabled: boolean,
+): { x: number; y: number } {
+  const [swing, setSwing] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (!enabled) {
+      setSwing({ x: 0, y: 0 });
+      return;
+    }
+
+    let frame = 0;
+    let next = { x: 0, y: 0 };
+
+    const flush = () => {
+      frame = 0;
+      setSwing(next);
+    };
+
+    const onMove = (event: PointerEvent) => {
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      // Divided by 1.4x the half-extent so the swing saturates a little
+      // outside the box, rather than hitting full deflection at the edge.
+      const clamp = (v: number) => Math.min(1, Math.max(-1, v));
+      next = {
+        x: clamp((event.clientX - cx) / (rect.width * 0.7)),
+        y: clamp((event.clientY - cy) / (rect.height * 0.7)),
+      };
+      if (!frame) frame = requestAnimationFrame(flush);
+    };
+
+    const onLeave = () => {
+      next = { x: 0, y: 0 };
+      if (!frame) frame = requestAnimationFrame(flush);
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerleave", onLeave);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerleave", onLeave);
+    };
+  }, [ref, enabled]);
+
+  return swing;
+}
+
 export function LayeredPlanes() {
   const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const progress = useScrollProgress(sectionRef);
   const compact = useCompact();
+  const reduced = usePrefersReducedMotion();
+  const swing = usePointerSwing(stageRef, !reduced && !compact);
 
   // `useScrollProgress` returns 0.5 at rest under reduced motion, which is
   // exactly the half-separated state — legible, and identical every frame.
@@ -214,68 +291,89 @@ export function LayeredPlanes() {
             left of centre, which is what tips the right-hand edges away from
             the viewer the way the reference does. */}
         <div
+          ref={stageRef}
           className="relative mx-auto mt-[var(--spacing-64)] h-[420px] w-full max-w-[860px] md:h-[520px] lg:mt-0"
           style={{ perspective: "1400px", perspectiveOrigin: "30% 50%" }}
         >
-          {PLANES.map((plane, i) => {
-            // Index 0 is the front sheet (nearest the viewer); `depth` counts
-            // backwards into the screen. As `spread` grows each sheet slides
-            // along the diagonal the reference uses — forward in z, and
-            // down-and-left in the picture plane — so the stack opens like a
-            // hand of cards being drawn rather than a column lifting.
-            const depth = i;
-            const travel = compact ? 46 : 92;
-            const t = depth * spread;
+          {/*
+            The swing lives on this wrapper, not on the individual sheets, so
+            the four planes turn as one rigid body. Rotating each sheet about
+            its own centre instead would shear the stack — the sheets would
+            splay rather than orbit, and the separation the section exists to
+            show would stop reading as depth.
 
-            const x = -t * travel * 0.72;
-            const y = t * travel * 0.46;
-            const z = -depth * 90 + t * 70;
-
-            // The whole stack turns slightly flatter as it opens, which is
-            // what stops the rear sheets from foreshortening into slivers.
-            const rotateY = 28 - spread * 7;
-            const scale = 1 - depth * 0.02;
-            // Front sheet brightest; the rear ones stay legible but recede.
-            const opacity = 0.9 - depth * 0.16;
-
-            return (
-              <div
-                key={plane.id}
-                className="absolute left-[8%] top-1/2 w-[76%] max-w-[560px]"
-                style={{
-                  transform: `translate3d(${x}px, ${y - 105}px, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
-                  transformStyle: "preserve-3d",
-                  // Front sheet paints last so it sits over the ones behind.
-                  zIndex: PLANES.length - i,
-                  opacity,
-                  transition: "opacity 0.4s linear",
-                }}
-              >
-                <div className="relative h-[250px] overflow-hidden rounded-[var(--radius-nested-cards)] border border-white/15 bg-white/[0.035] backdrop-blur-[1px] md:h-[290px]">
-                  <Contours seed={i} tint={plane.tint} />
-
-                  {/* Plane header. */}
-                  <div className="absolute left-[14px] top-[12px] flex items-center gap-[var(--spacing-8)]">
-                    <span className="font-mono text-[8px] tracking-[0.6px] text-white/35">
-                      {plane.id}
-                    </span>
-                    <span
-                      className="font-mono text-[9px] tracking-[0.8px]"
-                      style={{ color: plane.tint }}
-                    >
-                      {plane.label}
-                    </span>
+            The transition is on the wrapper for the same reason: it smooths
+            the return to rest when the pointer leaves without adding latency
+            to the per-frame pointer updates, which are already rAF-batched.
+          */}
+          <div
+            className="absolute inset-0"
+            style={{
+              transformStyle: "preserve-3d",
+              transform: `rotateY(${swing.x * SWING_Y}deg) rotateX(${-swing.y * SWING_X}deg)`,
+              transition: "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+          >
+            {PLANES.map((plane, i) => {
+              // Index 0 is the front sheet (nearest the viewer); `depth` counts
+              // backwards into the screen. As `spread` grows each sheet slides
+              // along the diagonal the reference uses — forward in z, and
+              // down-and-left in the picture plane — so the stack opens like a
+              // hand of cards being drawn rather than a column lifting.
+              const depth = i;
+              const travel = compact ? 46 : 92;
+              const t = depth * spread;
+  
+              const x = -t * travel * 0.72;
+              const y = t * travel * 0.46;
+              const z = -depth * 90 + t * 70;
+  
+              // The whole stack turns slightly flatter as it opens, which is
+              // what stops the rear sheets from foreshortening into slivers.
+              const rotateY = 28 - spread * 7;
+              const scale = 1 - depth * 0.02;
+              // Front sheet brightest; the rear ones stay legible but recede.
+              const opacity = 0.9 - depth * 0.16;
+  
+              return (
+                <div
+                  key={plane.id}
+                  className="absolute left-[8%] top-1/2 w-[76%] max-w-[560px]"
+                  style={{
+                    transform: `translate3d(${x}px, ${y - 105}px, ${z}px) rotateY(${rotateY}deg) scale(${scale})`,
+                    transformStyle: "preserve-3d",
+                    // Front sheet paints last so it sits over the ones behind.
+                    zIndex: PLANES.length - i,
+                    opacity,
+                    transition: "opacity 0.4s linear",
+                  }}
+                >
+                  <div className="relative h-[250px] overflow-hidden rounded-[var(--radius-nested-cards)] border border-white/15 bg-white/[0.035] backdrop-blur-[1px] md:h-[290px]">
+                    <Contours seed={i} tint={plane.tint} />
+  
+                    {/* Plane header. */}
+                    <div className="absolute left-[14px] top-[12px] flex items-center gap-[var(--spacing-8)]">
+                      <span className="font-mono text-[8px] tracking-[0.6px] text-white/35">
+                        {plane.id}
+                      </span>
+                      <span
+                        className="font-mono text-[9px] tracking-[0.8px]"
+                        style={{ color: plane.tint }}
+                      >
+                        {plane.label}
+                      </span>
+                    </div>
+  
+                    <div className="absolute right-[14px] top-[12px] font-mono text-[9px] tracking-[0.6px] text-white/70">
+                      {plane.metric}
+                    </div>
+  
+                    <TickLabels bits={plane.bits} />
                   </div>
-
-                  <div className="absolute right-[14px] top-[12px] font-mono text-[9px] tracking-[0.6px] text-white/70">
-                    {plane.metric}
-                  </div>
-
-                  <TickLabels bits={plane.bits} />
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* Captions fade in as the planes separate — the text reveal from the
