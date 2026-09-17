@@ -161,13 +161,13 @@ export const PAPERS = [
 export const CANARY = {
   cadence: "every 15 minutes",
   account: "Bitget Demo (paper) only, never live funds",
-  ticks: 23,
-  spanHours: 57.3,
+  ticks: 31,
+  spanHours: 66.6,
   /** Ticks on which a real Demo order was actually placed, per account. */
-  ordersPlaced: 16,
-  agreementRate: "23 of 23",
+  ordersPlaced: 23,
+  agreementRate: "31 of 31",
   symbols: "BTCUSDT and ETHUSDT, logged separately",
   claim: "Same symbol, same live feed, same agent. The shield is the only variable.",
   divergence:
-    "Control and shielded have agreed on all 23 ticks. The shield costs nothing on clean input. No PnL delta is claimed.",
+    "Control and shielded have agreed on all 31 ticks. The shield costs nothing on clean input. No PnL delta is claimed.",
 } as const;

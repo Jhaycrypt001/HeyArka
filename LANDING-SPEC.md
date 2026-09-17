@@ -423,14 +423,14 @@ repo; re-run before shipping if anything changes.
 | Repo-agent run (separate cloned repo) | grade `B`, `12.5%`, **labelled with its subject** | `arka attack --repo … --entry …` |
 | Test count | `134` (core 48, shield 24, cli 29, canary 25, mcp 8) | `pnpm -r test` |
 | Canary cadence | tick every 15 min, Demo account only | `node scripts/canary-figures.mjs` |
-| Canary agreement rate | `23 of 23` over 57.3h, 16 real Demo orders per account (BTCUSDT); ETHUSDT runs separately in `reports/canary-eth.jsonl` | `node scripts/canary-figures.mjs` |
+| Canary agreement rate | `31 of 31` over 66.6h, 23 real Demo orders per account (BTCUSDT); ETHUSDT runs separately in `reports/canary-eth.jsonl` | `node scripts/canary-figures.mjs` |
 | Attributable PnL delta | **deliberately not claimed** — see below | README |
 
 **The last two rows are load-bearing.** The page must never display a PnL delta.
 
 The canary is a controlled A/B under identical conditions -- same symbol, same
 live feed, same agent, shield the only variable -- so the quantitative finding
-is the **agreement rate**, not profit. 23 of 23 agreement over 57.3 hours is a
+is the **agreement rate**, not profit. 31 of 31 agreement over 66.6 hours is a
 complete answer to the false-positive question: the shield imposed no cost on
 clean input. That is what the page may claim.
 
