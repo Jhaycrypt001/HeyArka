@@ -1,4 +1,4 @@
-import { REPO_URL } from "@/lib/facts";
+import { REPO_URL, X_URL } from "@/lib/facts";
 import { ArkaGlyph, IconGitHub, IconX } from "./glyphs";
 import { FooterField } from "./footer-field";
 
@@ -134,7 +134,7 @@ export function Footer() {
               <IconGitHub className="h-4 w-4" />
             </a>
             <a
-              href="https://x.com"
+              href={X_URL}
               aria-label="X"
               className="flex h-11 w-11 items-center justify-center rounded-[var(--radius-buttons)] bg-charcoal text-pure-white transition-colors duration-200 hover:bg-graphite"
             >

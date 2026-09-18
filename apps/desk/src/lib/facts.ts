@@ -19,6 +19,13 @@
  */
 export const REPO_URL = "https://github.com/Jhaycrypt001/HeyArka";
 
+/**
+ * The project's X account. Defined here for the same reason as `REPO_URL`: the
+ * footer's social row carried a bare `https://x.com`, which is X's own home
+ * page and not this project — the identical fault the comment above records.
+ */
+export const X_URL = "https://x.com/jhayycrypt";
+
 export interface FamilyResult {
   readonly label: string;
   readonly succeeded: number;
