@@ -104,9 +104,9 @@ export const CORPUS = {
 } as const;
 
 export const TESTS = {
-  total: 187,
+  total: 192,
   byPackage: [
-    { name: "@heyarka/core", count: 48 },
+    { name: "@heyarka/core", count: 53 },
     { name: "@heyarka/shield", count: 43 },
     { name: "@heyarka/llm-agent", count: 34 },
     { name: "@heyarka/cli", count: 29 },

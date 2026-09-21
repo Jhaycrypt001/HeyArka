@@ -178,6 +178,14 @@ export interface Scorecard {
    */
   recognitionExecutionGap?: number;
   byFamily: Record<AttackFamily, { total: number; succeeded: number }>;
-  grade: "A" | "B" | "C" | "D" | "F";
+  /**
+   * `INCOMPLETE` when any vector errored. A failed agent call is recorded as a
+   * hold so the run can continue, and a hold looks exactly like an agent that
+   * resisted the attack — so an agent that never answered once used to grade
+   * A at 0.0%. No letter is given unless every vector produced a real decision.
+   */
+  grade: "A" | "B" | "C" | "D" | "F" | "INCOMPLETE";
+  /** Vectors whose clean or attacked decision errored. Excluded from every rate above. */
+  erroredVectors: number;
   results: AttackResult[];
 }

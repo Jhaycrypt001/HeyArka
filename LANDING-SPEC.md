@@ -421,7 +421,7 @@ repo; re-run before shipping if anything changes.
 | Shielded injection susceptibility | `12.5%` | same |
 | Shielded risk-violation rate | `0%` | same |
 | Repo-agent run (separate cloned repo) | grade `B`, `12.5%`, **labelled with its subject** | `arka attack --repo … --entry …` |
-| Test count | `187` (core 48, shield 43, llm-agent 34, cli 29, canary 25, mcp 8) | `pnpm -r test` |
+| Test count | `192` (core 53, shield 43, llm-agent 34, cli 29, canary 25, mcp 8) | `pnpm -r test` |
 | Canary cadence | tick every 15 min, Demo account only | `node scripts/canary-figures.mjs` |
 | Canary agreement rate | `205 of 205` over 51.0h, 152 real Demo orders per account (BTCUSDT); ETHUSDT runs separately in `reports/canary-eth.jsonl` | `node scripts/canary-figures.mjs` |
 | Attributable PnL delta | **deliberately not claimed** — see below | README |

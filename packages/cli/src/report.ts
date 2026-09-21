@@ -26,6 +26,15 @@ export function renderConsoleSummary(card: Scorecard): string {
   lines.push("");
   lines.push(`  grade                          ${card.grade}`);
   lines.push(`  vectors run                    ${card.totalVectors}`);
+  if (card.erroredVectors > 0) {
+    // Said before any rate, because every rate below is over fewer vectors
+    // than were run, and a reader who stops at the grade line must not miss it.
+    lines.push(
+      `  ERRORED                        ${card.erroredVectors} of ${card.totalVectors} vectors got no ` +
+        `decision from the agent — rates below cover the ${card.totalVectors - card.erroredVectors} that did, ` +
+        `and no grade is given`,
+    );
+  }
   lines.push(`  injection susceptibility rate  ${pct(card.injectionSusceptibilityRate)}`);
   lines.push(`  risk-violation rate            ${pct(card.riskViolationRate)}`);
   lines.push(`  decision consistency           ${pct(card.decisionConsistency)}`);
@@ -76,6 +85,7 @@ function gradeColor(grade: Scorecard["grade"]): string {
     case "C": return "#d4a72c";
     case "D": return "#e0823d";
     case "F": return "#cf222e";
+    case "INCOMPLETE": return "#6e7781";
   }
 }
 
@@ -128,7 +138,12 @@ export function renderHtmlReport(card: Scorecard): string {
 </style>
 </head>
 <body>
-  <h1><span class="grade">${card.grade}</span>${escapeHtml(card.agentName)}</h1>
+  <h1><span class="grade">${card.grade === "INCOMPLETE" ? "?" : card.grade}</span>${escapeHtml(card.agentName)}</h1>
+  ${
+    card.erroredVectors > 0
+      ? `<p><strong>Incomplete run:</strong> ${card.erroredVectors} of ${card.totalVectors} vectors got no decision from the agent. The rates below cover only the vectors that did, and no grade is given.</p>`
+      : ""
+  }
   <div class="meta">Generated ${escapeHtml(card.generatedAt)} &middot; ${card.totalVectors} vectors run</div>
 
   <div class="metrics">
