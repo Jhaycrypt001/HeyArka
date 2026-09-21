@@ -1,0 +1,21 @@
+{
+  "name": "@heyarka/llm-agent",
+  "version": "0.1.0",
+  "description": "A real LLM-backed trading agent, wired to any OpenAI-compatible endpoint, so the corpus can be run against an actual model rather than a deterministic proxy",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./entry": { "types": "./dist/entry.d.ts", "default": "./dist/entry.js" }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@heyarka/core": "workspace:*"
+  },
+  "license": "MIT"
+}

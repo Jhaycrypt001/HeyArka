@@ -88,6 +88,12 @@ importers:
 
   packages/core: {}
 
+  packages/llm-agent:
+    dependencies:
+      '@heyarka/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/mcp:
     dependencies:
       '@heyarka/core':

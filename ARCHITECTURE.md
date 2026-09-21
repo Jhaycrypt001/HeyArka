@@ -21,9 +21,15 @@ sample data and no placeholder scoring anywhere in the pipeline.
   confusable tables, the attack vector corpus, the mutation engine, the runner that
   executes clean-vs-attacked pairs, and the scoring math
 - **@heyarka/shield** (`packages/shield/`) — The defense, shipped standalone so any
-  third party can install it: text sanitizer, source-corroboration gate, point-in-time
+  third party can install it: text sanitizer, provenance gate, source-corroboration gate, point-in-time
   guard, deterministic risk contract, and a drop-in wrapper for the Bitget SDK's
   `safeInvoke`
+- **@heyarka/llm-agent** (`packages/llm-agent/`) — A real LLM-backed `AgentUnderTest`
+  for any OpenAI-compatible endpoint, so the corpus can be run against an actual
+  model rather than only the deterministic reference agent. It reaches the harness
+  through the public `--agent` path, with no special-casing in the CLI — the same
+  route a third party's agent takes. The bundled reference agent stays deterministic
+  because the judge path must run offline, in milliseconds, with reproducible results
 - **@heyarka/cli** (`packages/cli/`) — `arka` terminal command: `attack`, `score`,
   `report`
 - **@heyarka/mcp** (`packages/mcp/`) — MCP server exposing shield and scorecard tools
@@ -132,7 +138,8 @@ order placement. HeyArka's job is to prove whether it does, and to stop it.
   (attacked) → agent under test → two `ProposedOrder`s → diffed → `AttackResult` →
   appended to JSONL
 - **Defense**: raw `NewsItem[]` → sanitizer (NFKC + confusable folding + invisible
-  stripping) → corroboration gate (independent-source counting) → point-in-time guard →
+  stripping) → provenance gate (withholds items whose letters were rewritten) →
+  corroboration gate (independent-source counting) → point-in-time guard →
   agent → `ProposedOrder` → risk contract → allowed order or veto
 - **Scoring**: JSONL log → aggregate by family → susceptibility, risk-violation,
   consistency, look-ahead, takeover rates → `Scorecard`
@@ -171,6 +178,7 @@ order placement. HeyArka's job is to prove whether it does, and to stop it.
 - Attack runner: `packages/core/src/runner.ts`
 - Scoring math: `packages/core/src/score.ts`
 - Text sanitizer: `packages/shield/src/sanitize.ts`
+- Provenance gate: `packages/shield/src/provenance.ts`
 - Risk contract enforcement: `packages/core/src/risk.ts`
 - CLI entry: `packages/cli/src/index.ts`
 - MCP server: `packages/mcp/src/server.ts`

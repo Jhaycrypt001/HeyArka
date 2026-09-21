@@ -73,7 +73,13 @@ export const SHIELDED: Scorecard = {
   riskViolation: "0.0%",
   decisionConsistency: "100.0%",
   lookAheadContamination: "0.0%",
-  humanTakeover: "66.7%",
+  /**
+   * Fell from 66.7% when the provenance gate shipped. Fewer orders now reach
+   * the risk contract needing escalation, because an encoding-manipulated
+   * headline is withheld before the agent ever reads it — the attack is
+   * stopped earlier in the pipeline rather than vetoed at the end of it.
+   */
+  humanTakeover: "50.0%",
   families: [
     { label: "Homoglyph injection", succeeded: 0, total: 2 },
     { label: "Hidden-text clauses", succeeded: 0, total: 3 },
@@ -98,10 +104,11 @@ export const CORPUS = {
 } as const;
 
 export const TESTS = {
-  total: 134,
+  total: 187,
   byPackage: [
     { name: "@heyarka/core", count: 48 },
-    { name: "@heyarka/shield", count: 24 },
+    { name: "@heyarka/shield", count: 43 },
+    { name: "@heyarka/llm-agent", count: 34 },
     { name: "@heyarka/cli", count: 29 },
     { name: "@heyarka/canary", count: 25 },
     { name: "@heyarka/mcp", count: 8 },

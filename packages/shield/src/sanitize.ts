@@ -11,9 +11,20 @@
  * immediately" decodes to real, readable bearish language once unmasked —
  * sanitizing it does not make an agent that trusts embedded sentiment any
  * less willing to act on it. Sanitization defeats the obfuscation; it is the
- * risk contract (deterministic, never reads prose) and, longer-term, a
- * provenance/instruction-detection layer that must defeat the content itself.
+ * risk contract (deterministic, never reads prose) and the provenance gate
+ * that must defeat the content itself.
  * `shield.test.ts` documents this tradeoff with a real before/after run.
+ *
+ * That provenance layer now exists — `provenance.ts` — and it was built
+ * because this limit turned out to be worse than "insufficient" on one
+ * vector. Repairing a fabricated headline's Cyrillic ticker hands the agent a
+ * clean, credible story about the symbol it trades, so the fold made the
+ * forgery stronger. The findings this module reports are therefore evidence,
+ * not just audit decoration: the gate reads them and withholds items whose
+ * letters were rewritten. Note the division of labour — this module still
+ * repairs everything it can, because the gate needs the repaired text to
+ * compare against, and because legibility is the right default for every
+ * item that is not withheld.
  */
 import { skeleton, hasInvisibleChars, stripInvisible } from "@heyarka/core";
 import type { NewsItem } from "@heyarka/core";

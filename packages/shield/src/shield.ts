@@ -5,16 +5,22 @@
  * corpus twice, once bare and once shielded, for the A/B comparison the
  * scorecard reports.
  *
- * Pipeline: sanitize -> corroboration gate -> point-in-time guard -> agent.decide
- * -> risk contract enforcement. The last step is the one no attack in the
- * corpus can talk its way past: it runs after the model has already decided,
- * on the returned order alone, and never reads news text.
+ * Pipeline: sanitize -> provenance gate -> corroboration gate -> point-in-time
+ * guard -> agent.decide -> risk contract enforcement. The last step is the one
+ * no attack in the corpus can talk its way past: it runs after the model has
+ * already decided, on the returned order alone, and never reads news text.
+ *
+ * The provenance gate sits immediately after the sanitizer because it is the
+ * only stage that can still see what the sanitizer repaired. Sanitization is
+ * lossy by design — it exists to make hidden text legible — so the evidence
+ * that a headline's letters were rewritten survives exactly one step.
  */
 import { checkRiskContract } from "@heyarka/core";
 import type { AgentUnderTest, MarketContext, NewsItem, ProposedOrder, RiskContract } from "@heyarka/core";
 import { sanitizeNewsItem } from "./sanitize.js";
 import { applyCorroborationGate } from "./corroboration.js";
 import { applyPointInTimeGuard } from "./point-in-time.js";
+import { applyProvenanceGate, detectTampering, type TamperFinding } from "./provenance.js";
 
 export interface ShieldOptions {
   /** Enforced deterministically against the agent's output; violating orders are vetoed to hold. */
@@ -25,18 +31,39 @@ export interface ShieldOptions {
 
 export type ShieldAuditEvent =
   | { layer: "sanitize"; itemId: string; findings: string[] }
+  | {
+      layer: "provenance";
+      itemId: string;
+      source: string;
+      findings: TamperFinding[];
+      storySurvivesElsewhere: boolean;
+    }
   | { layer: "corroboration"; representative: string; collapsedIds: string[]; independentSourceCount: number }
   | { layer: "point-in-time"; rejected: NewsItem[]; reason: "future" | "replay" }
   | { layer: "risk-contract"; order: ProposedOrder; violations: string[] };
 
 function preprocess(ctx: MarketContext, onAudit?: ShieldOptions["onAudit"]): MarketContext {
-  const sanitized = ctx.news.map((item) => {
+  // Tampering is detected on the ORIGINAL text and carried forward beside the
+  // cleaned item: once sanitized, a folded Cyrillic Т is indistinguishable
+  // from a Latin T that was always there.
+  const entries = ctx.news.map((item) => {
     const { item: cleaned, result } = sanitizeNewsItem(item);
     if (result.wasModified) onAudit?.({ layer: "sanitize", itemId: item.id, findings: result.findings });
-    return cleaned;
+    return { item: cleaned, findings: detectTampering(item) };
   });
 
-  const corroborated = applyCorroborationGate(sanitized);
+  const provenance = applyProvenanceGate(entries);
+  for (const dropped of provenance.quarantined) {
+    onAudit?.({
+      layer: "provenance",
+      itemId: dropped.id,
+      source: dropped.source,
+      findings: dropped.findings,
+      storySurvivesElsewhere: dropped.storySurvivesElsewhere,
+    });
+  }
+
+  const corroborated = applyCorroborationGate(provenance.items);
   for (const group of corroborated.collapsed) {
     onAudit?.({
       layer: "corroboration",
