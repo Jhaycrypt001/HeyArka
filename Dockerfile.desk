@@ -16,12 +16,17 @@ WORKDIR /app
 RUN corepack enable
 
 # Manifests first, so a source-only change does not invalidate the install layer.
+# Every workspace package must be listed here. One that is missing still builds
+# on a dev machine, where node_modules already exists, and fails only in this
+# image with "Cannot find module @heyarka/core" -- which is how adding
+# packages/llm-agent broke the deploy that shipped it.
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/core/package.json packages/core/package.json
 COPY packages/shield/package.json packages/shield/package.json
 COPY packages/cli/package.json packages/cli/package.json
 COPY packages/mcp/package.json packages/mcp/package.json
 COPY packages/canary/package.json packages/canary/package.json
+COPY packages/llm-agent/package.json packages/llm-agent/package.json
 COPY apps/desk/package.json apps/desk/package.json
 
 RUN pnpm install --frozen-lockfile

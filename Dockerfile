@@ -8,6 +8,7 @@ COPY packages/shield/package.json packages/shield/package.json
 COPY packages/cli/package.json packages/cli/package.json
 COPY packages/mcp/package.json packages/mcp/package.json
 COPY packages/canary/package.json packages/canary/package.json
+COPY packages/llm-agent/package.json packages/llm-agent/package.json
 
 RUN pnpm install --frozen-lockfile
 
