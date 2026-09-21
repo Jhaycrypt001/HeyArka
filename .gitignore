@@ -17,3 +17,7 @@ reports/*.html
 reports/canary-daemon.log
 
 .DS_Store
+
+# llm-series.mjs working files: a pass in progress, and rejected passes kept for inspection
+reports/*.partial
+reports/*.failed-*
